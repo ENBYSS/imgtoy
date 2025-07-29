@@ -1,0 +1,1 @@
+cargo run release --release -- ./option.yaml
