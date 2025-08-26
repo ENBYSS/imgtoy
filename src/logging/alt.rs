@@ -86,7 +86,7 @@ impl SystemLog {
         self.indent();
         self.debug_log("category start", "")?;
         // self.message(format!("[{category}]"))?;
-        self.message(format!("[ {:~^15} ]", format!(" {category} ")))?;
+        self.message(format!("[ {:-^15} ]", format!(" {category} ")))?;
         self.categories.push(format!("{category}"));
         Ok(self)
     }

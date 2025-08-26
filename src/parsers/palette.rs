@@ -178,6 +178,75 @@ fn generate_random_palette_v2(
     }
 
     // lum strategy application
+    if flag_single_lum {
+        for i in 0..lum_amnt {
+            palette.push(Lch::new(1.0 * (i as f32 / lum_amnt as f32), rng.gen_range(0.0..128.0), seed_hue as f32));
+        }
+
+        for hue in hues.iter() {
+            palette.push(Lch::new(rng.gen_range(min_lum as f32..max_lum as f32), rng.gen_range(0.0..128.0), *hue as f32))
+        }
+    } else {
+        palette = use_original_lum_strategy(
+            rng,
+            lum_amnt,
+            lum_strategy,
+            flag_single_lum,
+            min_lum,
+            max_lum,
+            hues,
+        );
+    }
+
+    match chroma_strategy {
+        ChromaStrategy::Random(range) => {
+            palette.iter_mut().for_each(|col| {
+                if flag_grayscale {
+                    col.chroma = 0.0;
+                } else {
+                    col.chroma = rng.gen_range(range.clone()) as f32;
+                }
+            });
+        }
+    }
+
+    // injection
+    if flag_lum_safeguard {
+        palette.push(gen_with_random_lightness(rng, 80.0, 100.0));
+        palette.push(gen_with_random_lightness(rng, 20.0, 80.0));
+        palette.push(gen_with_random_lightness(rng, 0.0, 20.0));
+    }
+
+    if flag_extremes {
+        palette.push(Lch::new(0.0, 0.0, 0.0));
+        palette.push(Lch::new(100.0, 128.0, 0.0));
+    }
+
+    if let Some(colours) = inject {
+        let lch_colours: Vec<Lch> = colours
+            .into_iter()
+            .map(|colour| colour.into_color())
+            .collect();
+        palette = [palette, lch_colours].concat();
+    }
+
+    Ok(palette
+        .into_iter()
+        .map(|color| color.into_color())
+        .collect())
+}
+
+fn use_original_lum_strategy(
+    rng: &mut impl Rng,
+    lum_amnt: u64,
+    lum_strategy: LumStrategy,
+    flag_single_lum: bool,
+    min_lum: f64,
+    max_lum: f64,
+    hues: Vec<f64>,
+) -> Vec<Lch> {
+    let mut palette: Vec<Lch> = vec![];
+
     hues.into_iter().for_each(|hue| {
         let hue = hue as f32;
 
@@ -260,42 +329,7 @@ fn generate_random_palette_v2(
         }
     });
 
-    match chroma_strategy {
-        ChromaStrategy::Random(range) => {
-            palette.iter_mut().for_each(|col| {
-                if flag_grayscale {
-                    col.chroma = 0.0;
-                } else {
-                    col.chroma = rng.gen_range(range.clone()) as f32;
-                }
-            });
-        }
-    }
-
-    // injection
-    if flag_lum_safeguard {
-        palette.push(gen_with_random_lightness(rng, 80.0, 100.0));
-        palette.push(gen_with_random_lightness(rng, 20.0, 80.0));
-        palette.push(gen_with_random_lightness(rng, 0.0, 20.0));
-    }
-
-    if flag_extremes {
-        palette.push(Lch::new(0.0, 0.0, 0.0));
-        palette.push(Lch::new(100.0, 128.0, 0.0));
-    }
-
-    if let Some(colours) = inject {
-        let lch_colours: Vec<Lch> = colours
-            .into_iter()
-            .map(|colour| colour.into_color())
-            .collect();
-        palette = [palette, lch_colours].concat();
-    }
-
-    Ok(palette
-        .into_iter()
-        .map(|color| color.into_color())
-        .collect())
+    palette
 }
 
 #[allow(dead_code)]

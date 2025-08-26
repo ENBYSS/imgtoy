@@ -1,66 +1,40 @@
 source:
-  url: "https://media.discordapp.net/attachments/1156937706505506859/1395204530962038996/shinto.jpg?ex=687a41b9&is=6878f039&hm=7c6eeab630910109f68428402954a6b16ccbd8341b59aad99faf4c188dc877dd&="
+  #file: "/home/enbyss/gimp/images/like-a-pirate-yakuza-pt-A.png"
+  #url: "https://egirls.gay/files/webpublic-40072a5a-59f0-485b-8b70-cb864a7f99bc"
+  url: "https://media.discordapp.net/attachments/1100516361056292904/1409620050549280848/image.png?ex=68aeb339&is=68ad61b9&hm=c9ef116228fe79ba7b751efcf38a15daaa4539e98ba2f5aabf13919359609219&="
   media_type: "image"
   #max_dim: 1920
-  max_dim: 320
-  #max_dim: 640
+  # max_dim: 320
+  # max_dim: 640
+  max_dim: 960
 
 output:
-  #path: "./output/test/spectral"
   path: "./output/test/_quickmake"
-  #path: "./output/thumbnails/stream/alan-wake/002"
-  #path: "./output/thumbnails/stream/tgm4/001"
-  #path: "./output/thumbnails/stream/deltarune/chapter-3/part-04"
-  #path: "./output/thumbnails/stream/great-god-grove/002"
-  #path: "./output/thumbnails/stream/blue-prince/006"
-  #path: "./output/thumbnails/stream/nubbys-number-factory/002b"
-  #path: "./output/thumbnails/stream/ena-dream-bbq/002"
-  #path: "./output/thumbnails/stream/voidbreaker/001"
   n: 1000
 
 effects:
-  - hue-rotate:
-      factor: { min: 0.0, max: 360.0 }
   - brighten:
       factor: { min: -0.1, max: 0.1 }
   - saturate:
       factor: { min: -0.1, max: 0.1 }
   - contrast:
-      factor: { min: 0.8, max: 1.2 }
-  #- contrast:
-  #factor: [-1.0, 1.0]
-  # 20% chance to invert
-  #- contrast: [-1.0, 1.0, 1.0, 1.0, 1.0]
-  #- multiply-hue: { min: -2.0, max: 2.0 }
-  #  - gradient-map:
-  #      amnt: { min: 2, max: 10 }
-  #amnt: { min: 2, max: 25 }
-  #      noise: { min: 0.0, max: 5.0 }
-  #noise: [1.0, 5.0, 10.0, 25.0]
-  #      noise_chance: [0.0, 25.0, 50.0, 75.0, 100.0]
-  #      min_brightness: { min: 0.0, max: 10.0 }
-  #min_brightness: [0.0, 2.0, 5.0, 10.0, 25.0]
-  #      max_brightness: { min: 90.0, max: 100.0 }
-  #max_brightness: [100.0, 98.0, 95.0, 90.0, 75.0]
+      factor: [ 0.9, 1.0, 1.0, 1.5 ]
+  - hue-rotate:
+      factor: { min: 0.0, max: 360.0 }
   - ordered:
-      #matrix-size: [2, 4, 8, 16, 32, 64]
-      # ["bayer", "diamonds", "checkered-diamonds", "stars", "new-stars", "grid", "trail", "criss-cross", "static", "wavy", "bootleg-bayer", "diagonals", "diagonals-big", "diamond-grid", "speckle-squares", "scales", "trail-scales", "diagonals-n", "diagonal-tiles", "bouncing-bowtie", "scanline", "starburst", "shiny-bowtie", "marble-tile", "curve-path", "zigzag", "broken-spiral", "modulo-snake"]
       strategies:
-        #- starburst:
-        #    matrix-size: [4, 8, 16, 32, 64, 128, 256, 512]
-
         - marble-tile:
-            matrix-size: [4, 8, 16, 32, 64, 128, 256, 512]
+            matrix-size: [4, 8, 16]
 
         - diagonal-tiles:
-            matrix-size: [4, 8, 16, 32, 64, 128, 256, 512]
+            matrix-size: [4, 8, 16]
 
         - scanline:
-            matrix-size: [4, 8, 16, 32, 64, 128, 256, 512]
+            matrix-size: [4, 8, 16]
             orientation: horizontal
 
         - diagonals-n:
-            matrix-size: [4, 8, 16, 32, 64, 128, 256, 512]
+            matrix-size: [4, 8, 16, 32, 64, 128]
             diagonal-direction:
               down-right: 0.5
               up-right: 0.5
@@ -69,12 +43,12 @@ effects:
               factor: [2, 3]
 
         - curve-path:
-            matrix-size: [4, 8, 16, 32, 64, 128, 256, 512]
+            matrix-size: [4, 8, 16, 32, 64, 128]
             amplitude: { min: 0.1, max: 1.0 }
             promotion: { min: 0.001, max: 0.05 }
 
         - zigzag:
-            matrix-size: [4, 8, 16, 32, 64, 128, 256, 512]
+            matrix-size: [4, 8, 16, 32, 64, 128]
             halt-threshold: 1000
             base-step:
               y: { min: 0.1, max: 1.5 }
@@ -92,13 +66,13 @@ effects:
               y: { min: 0.001, max: 0.05 }
 
         - modulo-snake:
-            matrix-size: [4, 8, 16, 32, 64, 128, 256, 512]
+            matrix-size: [4, 8, 16, 32, 64, 128]
             increment-by: { min: 0.1, max: 100.0 }
             modulo: { min: 2, max: 2000 }
             iterations: { min: 1, max: 50 }
 
         - broken-spiral:
-            matrix-size: [4, 8, 16, 32, 64, 128, 256, 512]
+            matrix-size: [4, 8, 16, 32, 64, 128]
             base-step:
               y: { min: 0.1, max: 1.5 }
             oob-threshold: 500
