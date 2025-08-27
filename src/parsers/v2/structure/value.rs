@@ -1,26 +1,12 @@
 use serde_yaml::Value;
 
-pub enum SourceKind {
-    Url(String),
-    File(String),
-}
-
-pub struct Source {
-    kind: SourceKind,
-    max_dim: Option<usize>,
-}
-
-pub struct Output {
-    path: String,
-    n: usize,
-}
-
 trait _Value {}
 
 impl _Value for usize {}
 impl _Value for isize {}
 impl _Value for f64 {}
 
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub enum ValueProperty<T: _Value> {
     Fixed(T),
     Choice(Vec<T>),
@@ -122,4 +108,19 @@ impl ValueProperty<f64> {
             todo!()
         }
     }
+}
+
+#[inline]
+pub fn parse_property_as_usize(value: &Value, name: &str) -> Option<ValueProperty<usize>> {
+    value.get(name).map(|v| ValueProperty::<usize>::property(v))
+}
+
+#[inline]
+pub fn parse_property_as_isize(value: &Value, name: &str) -> Option<ValueProperty<isize>> {
+    value.get(name).map(|v| ValueProperty::<isize>::property(v))
+}
+
+#[inline]
+pub fn parse_property_as_f64(value: &Value, name: &str) -> Option<ValueProperty<f64>> {
+    value.get(name).map(|v| ValueProperty::<f64>::property(v))
 }

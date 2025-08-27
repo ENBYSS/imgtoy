@@ -2,6 +2,7 @@ use serde_yaml::Value;
 
 pub mod effects;
 pub mod ordered;
+pub mod palette;
 pub mod structure;
 
 pub fn parse_property_as_str(value: &Value, name: &str) -> String {
