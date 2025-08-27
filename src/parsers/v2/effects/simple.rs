@@ -1,3 +1,4 @@
+use image_effects::filter::filters;
 use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{parse_property_as_f64, ValueProperty};
@@ -30,6 +31,10 @@ impl Contrast {
     pub fn from_value(value: &Value) -> Self {
         Self(parse_property_as_f64(value.get("contrast").unwrap(), "factor").unwrap())
     }
+
+    pub fn generate(&self) -> filters::Contrast {
+        filters::Contrast(self.0.generate() as f32)
+    }
 }
 
 #[derive(Debug)]
@@ -40,6 +45,10 @@ impl HueRotate {
     pub fn from_value(value: &Value) -> Self {
         Self(parse_property_as_f64(value.get("hue-rotate").unwrap(), "factor").unwrap())
     }
+
+    pub fn generate(&self) -> filters::HueRotate {
+        filters::HueRotate(self.0.generate() as f32)
+    }
 }
 
 #[derive(Debug)]
@@ -48,5 +57,9 @@ pub struct MultiplyHue(ValueProperty<f64>);
 impl MultiplyHue {
     pub fn from_value(value: &Value) -> Self {
         Self(parse_property_as_f64(value.get("multiply-hue").unwrap(), "factor").unwrap())
+    }
+
+    pub fn generate(&self) -> filters::MultiplyHue {
+        filters::MultiplyHue(self.0.generate() as f32)
     }
 }

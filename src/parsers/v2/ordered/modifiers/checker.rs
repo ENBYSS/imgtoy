@@ -42,6 +42,6 @@ pub struct Checker {
 
 impl Checker {
     pub fn from_value(value: &Value) -> Option<Self> {
-        None
+        todo!("not now im tired")
     }
 }

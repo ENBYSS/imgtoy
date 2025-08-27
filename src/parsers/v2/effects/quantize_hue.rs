@@ -1,3 +1,4 @@
+use image_effects::filter::filters;
 use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{ValueProperty, Vf64};
@@ -19,5 +20,14 @@ impl QuantizeHue {
             .collect();
 
         QuantizeHue { hues }
+    }
+
+    pub fn generate(&self) -> filters::QuantizeHue {
+        filters::QuantizeHue::with_hues(
+            self.hues
+                .iter()
+                .map(|value| value.generate() as f32)
+                .collect(),
+        )
     }
 }

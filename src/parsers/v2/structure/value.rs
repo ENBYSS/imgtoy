@@ -1,3 +1,4 @@
+use rand::{seq::IndexedRandom, Rng};
 use serde_yaml::Value;
 
 trait _Value {}
@@ -46,6 +47,14 @@ impl ValueProperty<usize> {
             todo!()
         }
     }
+
+    pub fn generate(&self) -> usize {
+        match self {
+            ValueProperty::Fixed(val) => *val,
+            ValueProperty::Choice(vals) => *vals.choose(&mut rand::rng()).unwrap(),
+            ValueProperty::Range(min, max) => rand::rng().random_range(*min..*max),
+        }
+    }
 }
 
 impl ValueProperty<isize> {
@@ -75,6 +84,14 @@ impl ValueProperty<isize> {
             )
         } else {
             todo!()
+        }
+    }
+
+    pub fn generate(&self) -> isize {
+        match self {
+            ValueProperty::Fixed(val) => *val,
+            ValueProperty::Choice(vals) => *vals.choose(&mut rand::rng()).unwrap(),
+            ValueProperty::Range(min, max) => todo!("currently can't form a range over isize"),
         }
     }
 }
@@ -108,6 +125,14 @@ impl ValueProperty<f64> {
             todo!()
         }
     }
+
+    pub fn generate(&self) -> f64 {
+        match self {
+            ValueProperty::Fixed(val) => *val,
+            ValueProperty::Choice(vals) => *vals.choose(&mut rand::rng()).unwrap(),
+            ValueProperty::Range(min, max) => rand::rng().random_range(*min..*max),
+        }
+    }
 }
 
 #[inline]
@@ -123,4 +148,22 @@ pub fn parse_property_as_isize(value: &Value, name: &str) -> Option<ValuePropert
 #[inline]
 pub fn parse_property_as_f64(value: &Value, name: &str) -> Option<ValueProperty<f64>> {
     value.get(name).map(|v| ValueProperty::<f64>::property(v))
+}
+
+#[derive(Debug, Clone)]
+pub struct Chance {
+    value: ValueProperty<f64>,
+}
+
+impl From<ValueProperty<f64>> for Chance {
+    fn from(value: ValueProperty<f64>) -> Self {
+        Chance { value }
+    }
+}
+
+impl Chance {
+    pub fn roll(&self) -> bool {
+        let roll = rand::rng().random_range(0.0..=1.0);
+        self.value.generate() < roll
+    }
 }

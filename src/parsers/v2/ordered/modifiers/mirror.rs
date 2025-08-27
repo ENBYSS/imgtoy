@@ -1,6 +1,8 @@
+use image_effects::dither::ordered::tools::mirror::{self, MirrorLine};
+use rand::seq::IndexedRandom;
 use serde_yaml::Value;
 
-use crate::parsers::v2::structure::value::{parse_property_as_f64, ValueProperty, Vf64};
+use crate::parsers::v2::structure::value::{parse_property_as_f64, Chance, ValueProperty, Vf64};
 
 #[derive(Debug, Clone, Copy)]
 pub enum MirrorDirection {
@@ -10,11 +12,22 @@ pub enum MirrorDirection {
     Horizontal,
 }
 
+impl Into<mirror::MirrorDirection> for MirrorDirection {
+    fn into(self) -> mirror::MirrorDirection {
+        match self {
+            MirrorDirection::Downright => mirror::MirrorDirection::Downright,
+            MirrorDirection::Upright => mirror::MirrorDirection::Upright,
+            MirrorDirection::Horizontal => mirror::MirrorDirection::Horizontal,
+            MirrorDirection::Vertical => mirror::MirrorDirection::Vertical,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Mirror {
-    flip: Vf64,
-    thorough: Vf64,
-    chance: Vf64,
+    flip: Chance,
+    thorough: Chance,
+    chance: Chance,
     directions: Vec<Vec<MirrorDirection>>,
 }
 
@@ -63,10 +76,27 @@ impl Mirror {
             .collect::<Vec<_>>();
 
         Some(Mirror {
-            flip,
-            thorough,
-            chance,
+            flip: flip.into(),
+            thorough: thorough.into(),
+            chance: chance.into(),
             directions,
         })
+    }
+
+    pub fn generate(&self) -> Vec<MirrorLine> {
+        if !self.chance.roll() {
+            return vec![];
+        }
+
+        let mirror = self.directions.choose(&mut rand::rng()).unwrap();
+
+        mirror
+            .iter()
+            .map(|direction| MirrorLine {
+                direction: direction.clone().into(),
+                flip: self.flip.roll(),
+                thorough: self.thorough.roll(),
+            })
+            .collect()
     }
 }
