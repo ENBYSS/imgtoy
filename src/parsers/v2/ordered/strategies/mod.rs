@@ -1,3 +1,4 @@
+use image_effects::dither::ordered::Ordered;
 use serde_yaml::Value;
 
 use crate::parsers::v2::{

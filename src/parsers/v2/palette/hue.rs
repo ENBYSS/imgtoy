@@ -1,3 +1,4 @@
+use rand::Rng;
 use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{
@@ -90,6 +91,73 @@ impl HueStrategyKind {
             count: Self::parse_count(value),
         }
     }
+
+    fn generate_hue_neighbourhood(hue: f64, size: f64, n: u64, dist: &HueDistribution) -> Vec<f32> {
+        let mut neighbourhood = Vec::new();
+
+        let lower_end = hue as f32 - size as f32;
+        let upper_end = hue as f32 + size as f32;
+
+        for i in 0..n {
+            match dist {
+                HueDistribution::Linear => {
+                    let fraction = (i as f32) / ((n - 1) as f32);
+                    neighbourhood.push(lower_end + (size as f32 * 2.0 * fraction));
+                }
+                HueDistribution::Random => {
+                    neighbourhood.push(rand::rng().random_range(lower_end..upper_end));
+                }
+            }
+        }
+
+        neighbourhood
+    }
+
+    pub fn execute(&self) -> Vec<f32> {
+        self.execute_with_seed_hue(rand::rng().random_range(0.0..360.0))
+    }
+
+    pub fn execute_with_seed_hue(&self, seed_hue: f64) -> Vec<f32> {
+        match self {
+            Self::Neighbour {
+                size,
+                count,
+                distribution,
+            } => Self::generate_hue_neighbourhood(
+                seed_hue,
+                size.generate(),
+                count.generate() as u64,
+                distribution,
+            ),
+            Self::Contrast {
+                size,
+                count,
+                distribution,
+            } => Self::generate_hue_neighbourhood(
+                seed_hue + 180.0,
+                size.generate(),
+                count.generate() as u64,
+                distribution,
+            ),
+            Self::Penpal {
+                size,
+                count,
+                distribution,
+                distance,
+            } => Self::generate_hue_neighbourhood(
+                seed_hue + distance.generate(),
+                size.generate(),
+                count.generate() as u64,
+                distribution,
+            ),
+            Self::Cycle { count } => {
+                let count = count.generate();
+                (1..=count)
+                    .map(|i| seed_hue as f32 + i as f32 * (360.0 / (count as f32 + 1.0)))
+                    .collect()
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -121,5 +189,14 @@ impl HueStrategies {
                 .map(|s| Self::parse_hue_strategy(s))
                 .collect(),
         }
+    }
+
+    pub fn generate_hues(&self) -> Vec<f32> {
+        let seed_hue = rand::rng().random_range(0.0..360.0);
+
+        self.kinds
+            .iter()
+            .flat_map(|strategy| strategy.execute_with_seed_hue(seed_hue))
+            .collect()
     }
 }

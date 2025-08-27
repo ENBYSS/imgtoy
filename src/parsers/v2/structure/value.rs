@@ -18,6 +18,12 @@ pub type Vf64 = ValueProperty<f64>;
 pub type Vusize = ValueProperty<usize>;
 pub type Visize = ValueProperty<isize>;
 
+impl<T: _Value> From<T> for ValueProperty<T> {
+    fn from(value: T) -> Self {
+        Self::Fixed(value)
+    }
+}
+
 impl ValueProperty<usize> {
     pub fn property(value: &Value) -> Self {
         if let Some(exact) = value.as_u64() {

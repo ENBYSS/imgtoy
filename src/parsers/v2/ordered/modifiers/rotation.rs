@@ -1,6 +1,13 @@
+use std::marker::PhantomData;
+
+use image_effects::dither::{
+    self,
+    ordered::tools::{self, properties},
+};
+use rand::seq::IndexedRandom;
 use serde_yaml::Value;
 
-use crate::parsers::v2::structure::value::{parse_property_as_f64, ValueProperty, Vf64};
+use crate::parsers::v2::structure::value::{parse_property_as_f64, Chance, ValueProperty, Vf64};
 
 #[derive(Debug)]
 pub enum RotationDirection {
@@ -10,9 +17,20 @@ pub enum RotationDirection {
     NONE,
 }
 
+impl RotationDirection {
+    pub fn to_tool(&self) -> properties::Rotation {
+        match self {
+            Self::RIGHT => properties::Rotation::Right,
+            Self::LEFT => properties::Rotation::Left,
+            Self::HALF => properties::Rotation::Half,
+            Self::NONE => properties::Rotation::None,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Rotation {
-    chance: Vf64,
+    chance: Chance,
     values: Vec<RotationDirection>,
 }
 
@@ -24,7 +42,9 @@ impl Rotation {
         }
         let rotation = rotation.unwrap();
 
-        let chance = parse_property_as_f64(rotation, "chance").unwrap_or(ValueProperty::Fixed(0.0));
+        let chance = parse_property_as_f64(rotation, "chance")
+            .unwrap_or(ValueProperty::Fixed(0.0))
+            .into();
 
         let values = rotation
             .get("values")
@@ -43,5 +63,13 @@ impl Rotation {
             .collect::<Vec<_>>();
 
         Some(Rotation { chance, values })
+    }
+
+    pub fn to_tool(&self) -> Option<properties::Rotation> {
+        if !self.chance.roll() {
+            None
+        } else {
+            Some(self.values.choose(&mut rand::rng()).unwrap().to_tool())
+        }
     }
 }

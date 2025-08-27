@@ -111,6 +111,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         .unwrap(),
     );
 
+    // std::thread::spawn(move || {
+    //     for i in 0.. {
+    //         if i % 100 == 0 {
+    //             bar.tick()
+    //         }
+    //     }
+    // });
+
     log.header("EXECUTION")?;
 
     for i in 0..iterations {

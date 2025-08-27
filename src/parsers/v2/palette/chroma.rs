@@ -1,3 +1,4 @@
+use rand::Rng;
 use serde_yaml::Value;
 
 #[derive(Debug)]
@@ -20,5 +21,13 @@ impl ChromaStrategy {
         };
 
         ChromaStrategy { kind }
+    }
+
+    pub fn attach_chroma(&self, colours: &Vec<(f32, f32)>) -> Vec<(f32, f32, f32)> {
+        let mut rng = rand::rng();
+        colours
+            .iter()
+            .map(|(hue, lum)| (*hue, rng.random_range(0.0..128.0), *lum))
+            .collect()
     }
 }

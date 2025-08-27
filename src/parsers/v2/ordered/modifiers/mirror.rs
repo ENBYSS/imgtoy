@@ -83,7 +83,7 @@ impl Mirror {
         })
     }
 
-    pub fn generate(&self) -> Vec<MirrorLine> {
+    pub fn to_tool(&self) -> Vec<MirrorLine> {
         if !self.chance.roll() {
             return vec![];
         }

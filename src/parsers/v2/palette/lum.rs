@@ -16,6 +16,21 @@ pub enum LumStrategyKind {
 }
 
 impl LumStrategyKind {
+    pub fn generate(&self, hues: &Vec<f32>) -> Vec<(f32, f32)> {
+        match self {
+            Self::Exact { exact } => unimplemented!(),
+            Self::StackedExact { exact } => unimplemented!(),
+            Self::Random { count, stack } => unimplemented!(),
+            Self::StackDistributed => unimplemented!(),
+            Self::StackDistributedArea { overlap } => unimplemented!(),
+            Self::StackDistributedNudge {
+                nudge_size,
+                per_lum,
+            } => unimplemented!(),
+            Self::LoopingPreference { segments } => unimplemented!(),
+        }
+    }
+
     fn parse_lum_list(value: &Value) -> Vec<Vf64> {
         value
             .get("lums")
@@ -91,5 +106,9 @@ impl LumStrategy {
         };
 
         Self { kind }
+    }
+
+    pub fn attach_lums(&self, hues: &Vec<f32>) -> Vec<(f32, f32)> {
+        self.kind.generate(hues)
     }
 }

@@ -1,3 +1,4 @@
+use palette::{IntoColor, Lch, Srgb};
 use serde_yaml::Value;
 
 use crate::parsers::v2::palette::{chroma::ChromaStrategy, hue::HueStrategies, lum::LumStrategy};
@@ -81,5 +82,16 @@ impl Palette {
         Self {
             config: PaletteConfig::from_value(value),
         }
+    }
+
+    pub fn generate(&self) -> Vec<Srgb> {
+        let hues = self.config.hue_strategies.generate_hues();
+        let colours = self.config.lum_strategy.attach_lums(&hues);
+        let colours = self.config.chroma_strategy.attach_chroma(&colours);
+
+        colours
+            .into_iter()
+            .map(|(l, c, h)| Lch::new(l, c, h).into_color())
+            .collect()
     }
 }

@@ -1,11 +1,11 @@
 source:
   #file: "/home/enbyss/gimp/images/like-a-pirate-yakuza-pt-A.png"
   #url: "https://egirls.gay/files/webpublic-40072a5a-59f0-485b-8b70-cb864a7f99bc"
-  url: "https://media1.tenor.com/m/pG7R6ThRw_QAAAAC/of-the-devil-otd.gif"
   #max_dim: 1920
+  url: "https://media.discordapp.net/attachments/1401753090205679736/1410224143109980191/20250827_091719.jpg?ex=68b03d14&is=68aeeb94&hm=2198086b4c46653f16c3ff30c767cde35bd137627952742d3331e8ed0fcb55e1&="
   # max_dim: 320
-  # max_dim: 640
-  max_dim: 960
+  max_dim: 1920
+  # max_dim: 960
 
 output:
   path: "./output/test/_quickmake"
