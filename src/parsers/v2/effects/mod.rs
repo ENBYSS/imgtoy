@@ -1,3 +1,11 @@
+use image_effects::{
+    dither::{
+        self,
+        error::{self, WithPalette},
+    },
+    effect::Effect,
+    filter::filters,
+};
 use serde_yaml::Value;
 
 use crate::parsers::v2::effects::{
@@ -105,6 +113,31 @@ impl EffectKind {
             _ => todo!(),
         }
     }
+
+    pub fn generate<'a, 'b, T>(&self) -> Box<dyn Effect<T>>
+    where
+        filters::HueRotate: Effect<T>,
+        filters::Contrast: Effect<T>,
+        filters::Brighten: Effect<T>,
+        filters::Saturate: Effect<T>,
+        filters::GradientMap: Effect<T>,
+        filters::QuantizeHue: Effect<T>,
+        filters::MultiplyHue: Effect<T>,
+        dither::ordered::Ordered: Effect<T>,
+        error::ErrorPropagator<'static, 'static, WithPalette>: Effect<T>,
+    {
+        match self {
+            Self::Brighten(f) => Box::new(f.generate()),
+            Self::Saturate(f) => Box::new(f.generate()),
+            Self::Contrast(f) => Box::new(f.generate()),
+            Self::HueRotate(f) => Box::new(f.generate()),
+            Self::MultiplyHue(f) => Box::new(f.generate()),
+            Self::QuantizeHue(f) => Box::new(f.generate()),
+            Self::GradientMap(f) => Box::new(f.generate()),
+            Self::ErrorPropagator(f) => Box::new(f.generate()),
+            Self::Ordered(f) => Box::new(f.generate_effect()),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -124,5 +157,20 @@ impl Effects {
                 .map(|s| EffectKind::from_value(s))
                 .collect(),
         }
+    }
+
+    pub fn generate<T>(&self) -> Vec<Box<dyn Effect<T>>>
+    where
+        filters::HueRotate: Effect<T>,
+        filters::Contrast: Effect<T>,
+        filters::Brighten: Effect<T>,
+        filters::Saturate: Effect<T>,
+        filters::GradientMap: Effect<T>,
+        filters::QuantizeHue: Effect<T>,
+        filters::MultiplyHue: Effect<T>,
+        dither::ordered::Ordered: Effect<T>,
+        error::ErrorPropagator<'static, 'static, WithPalette>: Effect<T>,
+    {
+        self.kinds.iter().map(|kind| kind.generate()).collect()
     }
 }

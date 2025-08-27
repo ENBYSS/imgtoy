@@ -1,3 +1,4 @@
+use image_effects::filter::filters;
 use palette::rgb::Rgb;
 use serde_yaml::Value;
 
@@ -19,8 +20,10 @@ impl GradientMap {
     }
 
     pub fn from_value(value: &Value) -> Self {
-        // let colour_thresholds = value.get("gradient-map").unwrap().as_sequence().unwrap();
+        todo!("not now, barely used")
+    }
 
-        todo!()
+    pub fn generate(&self) -> filters::GradientMap {
+        todo!("not now, barely used")
     }
 }

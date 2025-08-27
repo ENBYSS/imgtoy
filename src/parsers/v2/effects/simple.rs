@@ -1,4 +1,4 @@
-use image_effects::filter::filters;
+use image_effects::filter::filters::{self};
 use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{parse_property_as_f64, ValueProperty};
@@ -11,6 +11,10 @@ impl Brighten {
     pub fn from_value(value: &Value) -> Self {
         Self(parse_property_as_f64(value.get("brighten").unwrap(), "factor").unwrap())
     }
+
+    pub fn generate(&self) -> filters::Brighten {
+        filters::Brighten(self.0.generate() as f32)
+    }
 }
 
 #[derive(Debug)]
@@ -20,6 +24,10 @@ pub struct Saturate(ValueProperty<f64>);
 impl Saturate {
     pub fn from_value(value: &Value) -> Self {
         Self(parse_property_as_f64(value.get("saturate").unwrap(), "factor").unwrap())
+    }
+
+    pub fn generate(&self) -> filters::Saturate {
+        filters::Saturate(self.0.generate() as f32)
     }
 }
 

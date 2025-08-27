@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use image_effects::dither::ordered::algorithms::properties;
+use rand::Rng;
 use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{
@@ -12,10 +14,19 @@ pub enum IncreaseValueKind {
     Exponential(Vusize),
 }
 
+impl IncreaseValueKind {
+    pub fn to_property(&self) -> properties::Increase {
+        match self {
+            Self::Linear(f) => properties::Increase::Linear(f.generate() as u8),
+            Self::Exponential(f) => properties::Increase::Exponential(f.generate() as u8),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum IncreaseKind {
     Exact(IncreaseValueKind),
-    Ratios(HashMap<IncreaseValueKind, f64>),
+    Ratios(Vec<(f64, IncreaseValueKind)>),
 }
 
 #[derive(Debug)]
@@ -53,12 +64,12 @@ impl Increase {
             let linear = mapping.get("linear").map(|ratio| ratio.as_f64().unwrap_or_else(|| { panic!("{}", "[ordered.orientation.horizontal] must be a float.".to_string()) }));
             let exponential = mapping.get("exponential").map(|ratio| ratio.as_f64().unwrap_or_else(|| { panic!("{}", "[ordered.orientation.vertical] must be a float.".to_string()) }));
 
-            let mut ratios = HashMap::new();
+            let mut ratios = Vec::new();
             if let Some(linear) = linear {
-                ratios.insert(IncreaseValueKind::Linear(factor.clone()), linear);
+                ratios.push((linear, IncreaseValueKind::Linear(factor.clone())));
             }
             if let Some(exponential) = exponential {
-                ratios.insert(IncreaseValueKind::Exponential(factor), exponential);
+                ratios.push((exponential, IncreaseValueKind::Exponential(factor)));
             }
 
             Increase { kind: IncreaseKind::Ratios(ratios), chance }
@@ -76,5 +87,25 @@ impl Increase {
     };
 
         Some(increase)
+    }
+
+    pub fn generate(&self) -> properties::Increase {
+        match &self.kind {
+            IncreaseKind::Exact(increase) => increase.to_property(),
+            IncreaseKind::Ratios(ratios) => {
+                let capacity = ratios.iter().map(|(ratio, _)| ratio).sum();
+
+                let mut flag = rand::rng().random_range(0.0..capacity);
+
+                for (ratio, increase) in ratios {
+                    flag -= ratio;
+                    if flag <= 0.0 {
+                        return increase.to_property();
+                    }
+                }
+
+                todo!("fix ratio calculation")
+            }
+        }
     }
 }

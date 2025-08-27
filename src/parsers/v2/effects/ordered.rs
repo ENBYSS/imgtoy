@@ -1,4 +1,5 @@
 use image_effects::dither::ordered::{self, OrderedStrategy};
+use rand::seq::IndexedRandom;
 use serde_yaml::Value;
 
 use crate::parsers::v2::{
@@ -53,34 +54,40 @@ impl Ordered {
     }
 
     pub fn generate_effect(&self) -> ordered::Ordered {
-        let strategy: OrderedStrategy = todo!("the work needed. augh");
+        let mut strategy: OrderedStrategy = self
+            .strategies
+            .choose(&mut rand::rng())
+            .unwrap()
+            .generate_effect();
 
-        if let Some(blur) = self.blur {
-            todo!("not yet");
+        if let Some(blur) = &self.blur {
+            if let Some(blur) = blur.generate_factor() {
+                strategy = strategy.blur(blur);
+            }
         }
-        if let Some(exponentiate) = self.exponentiate {
-            todo!("nope");
+        if let Some(exponentiate) = &self.exponentiate {
+            if let Some(exponentiate) = exponentiate.generate_factor() {
+                strategy = strategy.exponentiate(exponentiate);
+            }
         }
-        if let Some(rotation) = self.rotation {
+        if let Some(rotation) = &self.rotation {
             if let Some(rotation) = rotation.to_tool() {
-                strategy.rotate(rotation);
+                strategy = strategy.rotate(rotation);
             }
         }
-        if let Some(checker) = self.checker {
+        if let Some(checker) = &self.checker {
             if let Some(checker) = checker.to_tool() {
-                strategy.checker(checker);
+                strategy = strategy.checker(checker);
             }
         }
-        if let Some(invert) = self.invert {
-            todo!("nuh uh");
+        if let Some(invert) = &self.invert {
+            if invert.roll() {
+                strategy = strategy.invert();
+            }
         }
-        if let Some(mirror) = self.mirror {
-            // mirror.to_tool().into_iter().for_each(|t| {
-            //     strategy.mirror(t);
-            // });
-
+        if let Some(mirror) = &self.mirror {
             for line in mirror.to_tool() {
-                strategy.mirror(line);
+                strategy = strategy.mirror(line);
             }
         }
 

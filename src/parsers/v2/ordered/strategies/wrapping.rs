@@ -1,3 +1,5 @@
+use image_effects::dither::ordered::algorithms::properties;
+use rand::seq::IndexedRandom;
 use serde_yaml::Value;
 
 #[derive(Debug)]
@@ -6,6 +8,17 @@ pub enum WrappingKind {
     Vertical,
     All,
     None,
+}
+
+impl WrappingKind {
+    pub fn to_property(&self) -> properties::Wrapping {
+        match self {
+            Self::Horizontal => properties::Wrapping::Horizontal,
+            Self::Vertical => properties::Wrapping::Vertical,
+            Self::All => properties::Wrapping::All,
+            Self::None => properties::Wrapping::None,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -46,5 +59,9 @@ impl Wrapping {
             .collect::<Vec<_>>();
 
         Some(Wrapping { kinds })
+    }
+
+    pub fn pick(&self) -> properties::Wrapping {
+        self.kinds.choose(&mut rand::rng()).unwrap().to_property()
     }
 }

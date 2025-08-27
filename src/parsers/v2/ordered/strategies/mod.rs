@@ -1,4 +1,4 @@
-use image_effects::dither::ordered::Ordered;
+use image_effects::dither::ordered::{algorithms::properties, Ordered, OrderedStrategy};
 use serde_yaml::Value;
 
 use crate::parsers::v2::{
@@ -202,6 +202,111 @@ impl Effect {
                     .unwrap_or(ValueProperty::Fixed(1)),
             },
             _ => todo!("didn't expect {effect_name}"),
+        }
+    }
+
+    pub fn generate_effect(&self) -> OrderedStrategy {
+        match self {
+            Self::Bayer { matrix_size } => OrderedStrategy::Bayer(matrix_size.generate()),
+            Self::Diamond { matrix_size } => OrderedStrategy::Diamonds(matrix_size.generate()),
+            Self::CheckeredDiamonds { matrix_size } => {
+                OrderedStrategy::CheckeredDiamonds(matrix_size.generate())
+            }
+            Self::Stars => OrderedStrategy::Stars,
+            Self::NewStars => OrderedStrategy::NewStars,
+            Self::Grid => OrderedStrategy::Grid,
+            Self::Trail => OrderedStrategy::Trail,
+            Self::Crisscross => OrderedStrategy::Crisscross,
+            Self::Static => OrderedStrategy::Static,
+            Self::Wavy { orientation } => OrderedStrategy::Wavy(orientation.generate()),
+            Self::BootlegBayer => OrderedStrategy::BootlegBayer,
+            Self::Diagonals => OrderedStrategy::Diagonals,
+            Self::DiagonalsBig => OrderedStrategy::DiagonalsBig,
+            Self::DiamondGrid => OrderedStrategy::DiamondGrid,
+            Self::SpeckleSquares => OrderedStrategy::SpeckleSquares,
+            Self::Scales => OrderedStrategy::Scales,
+            Self::TrailScales => OrderedStrategy::TrailScales,
+            Self::DiagonalsN {
+                matrix_size,
+                direction,
+                increase,
+            } => OrderedStrategy::DiagonalsN {
+                n: matrix_size.generate(),
+                direction: direction.generate(),
+                increase: increase.generate(),
+            },
+            Self::DiagonalTiles { matrix_size } => {
+                OrderedStrategy::DiagonalTiles(matrix_size.generate())
+            }
+            Self::BouncingBowtie { matrix_size } => {
+                OrderedStrategy::BouncingBowtie(matrix_size.generate())
+            }
+            Self::Scanline {
+                matrix_size,
+                orientation,
+            } => OrderedStrategy::ScanLine(matrix_size.generate(), orientation.generate()),
+            Self::Starburst { matrix_size } => OrderedStrategy::Starburst(matrix_size.generate()),
+            Self::ShinyBowtie { matrix_size } => {
+                OrderedStrategy::ShinyBowtie(matrix_size.generate())
+            }
+            Self::MarbleTile { matrix_size } => OrderedStrategy::MarbleTile(matrix_size.generate()),
+            Self::CurvePath {
+                matrix_size,
+                amplitude,
+                promotion,
+                halt_threshold,
+            } => OrderedStrategy::CurvePath {
+                n: matrix_size.generate(),
+                amplitude: amplitude.generate(),
+                promotion: promotion.generate(),
+                halt_threshold: halt_threshold.generate(),
+            },
+            Self::Zigzag {
+                matrix_size,
+                halt_threshold,
+                wrapping,
+                magnitude,
+                promotion,
+            } => OrderedStrategy::ZigZag {
+                n: matrix_size.generate(),
+                halt_threshold: halt_threshold.generate(),
+                wrapping: wrapping.pick(),
+                magnitude: (
+                    magnitude.0.as_ref().map(|m| m.generate()).unwrap_or(1.0),
+                    magnitude.1.as_ref().map(|m| m.generate()).unwrap_or(1.0),
+                ),
+                promotion: (
+                    promotion.0.as_ref().map(|p| p.generate()).unwrap_or(0.0),
+                    promotion.1.as_ref().map(|p| p.generate()).unwrap_or(0.0),
+                ),
+            },
+            Self::BrokenSpiral {
+                matrix_size,
+                base_step,
+                oob_threshold,
+                increment_by,
+                increment_in,
+            } => OrderedStrategy::BrokenSpiral {
+                n: matrix_size.generate(),
+                base_step: (
+                    base_step.0.as_ref().map(|b| b.generate()).unwrap_or(0.0),
+                    base_step.1.as_ref().map(|b| b.generate()).unwrap_or(0.0),
+                ),
+                oob_threshold: oob_threshold.generate(),
+                increment_by: increment_by.generate(),
+                increment_in: increment_in.generate(),
+            },
+            Self::ModuloSnake {
+                matrix_size,
+                increment_by,
+                modulo,
+                iterations,
+            } => OrderedStrategy::ModuloSnake {
+                n: matrix_size.generate(),
+                increment_by: increment_by.generate(),
+                modulo: modulo.generate(),
+                iterations: iterations.generate(),
+            },
         }
     }
 }

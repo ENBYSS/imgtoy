@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use image_effects::dither::ordered::algorithms::properties;
+use rand::Rng;
 use serde_yaml::Value;
 
 #[derive(PartialEq, Eq, Hash, Debug)]
@@ -8,9 +10,18 @@ pub enum DiagonalDirection {
     UpRight,
 }
 
+impl From<&DiagonalDirection> for properties::DiagonalDirection {
+    fn from(value: &DiagonalDirection) -> Self {
+        match value {
+            DiagonalDirection::DownRight => properties::DiagonalDirection::DownRight,
+            DiagonalDirection::UpRight => properties::DiagonalDirection::UpRight,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum DiagonalKind {
-    Ratios(HashMap<DiagonalDirection, f64>),
+    Ratios(Vec<(f64, DiagonalDirection)>),
     Exact(DiagonalDirection),
 }
 
@@ -30,12 +41,12 @@ impl Diagonal {
                 let dr_ratio = mapping.get("down-right").map(|ratio| ratio.as_f64().unwrap_or_else(|| { panic!("{}", "[ordered.orientation.horizontal] must be a float.".to_string()) }));
                 let ur_ratio = mapping.get("up-right").map(|ratio| ratio.as_f64().unwrap_or_else(|| { panic!("{}", "[ordered.orientation.vertical] must be a float.".to_string()) }));
 
-                let mut ratio_map = HashMap::new();
+                let mut ratio_map = Vec::new();
                 if dr_ratio.is_some() {
-                    ratio_map.insert(DiagonalDirection::DownRight, dr_ratio.unwrap());
+                    ratio_map.push((dr_ratio.unwrap(), DiagonalDirection::DownRight));
                 }
                 if ur_ratio.is_some() {
-                    ratio_map.insert(DiagonalDirection::UpRight, ur_ratio.unwrap());
+                    ratio_map.push((ur_ratio.unwrap(), DiagonalDirection::UpRight));
                 }
 
                 Diagonal { kind: DiagonalKind::Ratios(ratio_map) }
@@ -50,6 +61,26 @@ impl Diagonal {
                 Diagonal { kind: DiagonalKind::Exact(direction) }
             },
             _ => panic!("[ordered.orientation] must be a mapping of ratios, or one of 'down-right' / 'up-right'")
+        }
+    }
+
+    pub fn generate(&self) -> properties::DiagonalDirection {
+        match &self.kind {
+            DiagonalKind::Exact(direction) => direction.into(),
+            DiagonalKind::Ratios(ratios) => {
+                let capacity = ratios.iter().map(|(ratio, _)| ratio).sum();
+
+                let mut flag = rand::rng().random_range(0.0..capacity);
+
+                for (ratio, direction) in ratios {
+                    flag -= ratio;
+                    if flag <= 0.0 {
+                        return direction.into();
+                    }
+                }
+
+                todo!("fix ratio calculation")
+            }
         }
     }
 }

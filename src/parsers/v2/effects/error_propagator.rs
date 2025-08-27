@@ -1,4 +1,11 @@
+use image_effects::dither::{
+    error::{self, Base, WithPalette},
+    ATKINSON, BURKES, FLOYD_STEINBERG, JARVIS_JUDICE_NINKE, SIERRA, SIERRA_LITE, SIERRA_TWO_ROW,
+    STUCKI,
+};
 use serde_yaml::Value;
+
+use crate::parsers::v2::palette::Palette;
 
 #[derive(Debug)]
 pub enum ErrorPropagatorKind {
@@ -12,9 +19,25 @@ pub enum ErrorPropagatorKind {
     SierraLite,
 }
 
+impl ErrorPropagatorKind {
+    pub fn get(&self) -> error::ErrorPropagator<'static, 'static, Base> {
+        match self {
+            Self::FloydSteinberg => FLOYD_STEINBERG,
+            Self::JarvisJudiceNinke => JARVIS_JUDICE_NINKE,
+            Self::Atkinson => ATKINSON,
+            Self::Burkes => BURKES,
+            Self::Stucki => STUCKI,
+            Self::Sierra => SIERRA,
+            Self::SierraTwoRow => SIERRA_TWO_ROW,
+            Self::SierraLite => SIERRA_LITE,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct ErrorPropagator {
     kind: ErrorPropagatorKind,
+    palette: Palette,
 }
 
 impl ErrorPropagator {
@@ -37,6 +60,14 @@ impl ErrorPropagator {
             _ => todo!(),
         };
 
-        ErrorPropagator { kind }
+        let palette = Palette::from_value(value);
+
+        ErrorPropagator { kind, palette }
+    }
+
+    pub fn generate(&self) -> error::ErrorPropagator<'static, 'static, WithPalette> {
+        let kind = self.kind.get();
+        let kind = kind.with_palette(self.palette.generate());
+        return kind;
     }
 }

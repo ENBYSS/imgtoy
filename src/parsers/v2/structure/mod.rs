@@ -10,9 +10,9 @@ pub mod value;
 
 #[derive(Debug)]
 pub struct MainConfiguration {
-    source: Source,
-    output: Output,
-    effects: Effects,
+    pub source: Source,
+    pub output: Output,
+    pub effects: Effects,
 }
 
 impl MainConfiguration {

@@ -1,12 +1,12 @@
 use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{
-    parse_property_as_f64, parse_property_as_usize, ValueProperty, Vf64, Vusize,
+    parse_property_as_f64, parse_property_as_usize, Chance, ValueProperty, Vf64, Vusize,
 };
 
 #[derive(Debug)]
 pub struct Invert {
-    chance: Vf64,
+    chance: Chance,
 }
 
 impl Invert {
@@ -17,15 +17,21 @@ impl Invert {
         }
         let invert = invert.unwrap();
 
-        let chance = parse_property_as_f64(invert, "chance").unwrap_or(ValueProperty::Fixed(0.0));
+        let chance = parse_property_as_f64(invert, "chance")
+            .unwrap_or(ValueProperty::Fixed(0.0))
+            .into();
 
         Some(Invert { chance })
+    }
+
+    pub fn roll(&self) -> bool {
+        self.chance.roll()
     }
 }
 
 #[derive(Debug)]
 pub struct Exponentiate {
-    chance: Vf64,
+    chance: Chance,
     factor: Vf64,
 }
 
@@ -37,18 +43,27 @@ impl Exponentiate {
         }
         let exponentiate = exponentiate.unwrap();
 
-        let chance =
-            parse_property_as_f64(exponentiate, "chance").unwrap_or(ValueProperty::Fixed(0.0));
+        let chance = parse_property_as_f64(exponentiate, "chance")
+            .unwrap_or(ValueProperty::Fixed(0.0))
+            .into();
         let factor =
             parse_property_as_f64(exponentiate, "factor").unwrap_or(ValueProperty::Fixed(0.0));
 
         Some(Exponentiate { chance, factor })
     }
+
+    pub fn generate_factor(&self) -> Option<f64> {
+        if self.chance.roll() {
+            Some(self.factor.generate())
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug)]
 pub struct Blur {
-    chance: Vf64,
+    chance: Chance,
     factor: Vusize,
 }
 
@@ -60,9 +75,19 @@ impl Blur {
         }
         let blur = blur.unwrap();
 
-        let chance = parse_property_as_f64(blur, "chance").unwrap_or(ValueProperty::Fixed(0.0));
+        let chance = parse_property_as_f64(blur, "chance")
+            .unwrap_or(ValueProperty::Fixed(0.0))
+            .into();
         let factor = parse_property_as_usize(blur, "factor").unwrap_or(ValueProperty::Fixed(1));
 
         Some(Blur { chance, factor })
+    }
+
+    pub fn generate_factor(&self) -> Option<usize> {
+        if self.chance.roll() {
+            Some(self.factor.generate())
+        } else {
+            None
+        }
     }
 }
