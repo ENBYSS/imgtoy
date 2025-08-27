@@ -87,7 +87,12 @@ impl Palette {
     pub fn generate(&self) -> Vec<Srgb> {
         let hues = self.config.hue_strategies.generate_hues();
         let colours = self.config.lum_strategy.attach_lums(&hues);
-        let colours = self.config.chroma_strategy.attach_chroma(&colours);
+        let mut colours = self.config.chroma_strategy.attach_chroma(&colours);
+
+        if self.config.misc_flag.extremes {
+            colours.push((0.0, 0.0, 0.0));
+            colours.push((100.0, 9.0, 0.0));
+        }
 
         colours
             .into_iter()

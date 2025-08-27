@@ -96,6 +96,7 @@ effects:
       checker:
         chance: 0.8
         type: from
+        from:
         source:
           type: center
         factor:

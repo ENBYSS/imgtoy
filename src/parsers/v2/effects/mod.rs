@@ -114,7 +114,7 @@ impl EffectKind {
         }
     }
 
-    pub fn generate<'a, 'b, T>(&self) -> Box<dyn Effect<T>>
+    pub fn generate<'a, 'b, T>(&self) -> Box<dyn Effect<T> + Send + Sync>
     where
         filters::HueRotate: Effect<T>,
         filters::Contrast: Effect<T>,
@@ -159,7 +159,7 @@ impl Effects {
         }
     }
 
-    pub fn generate<T>(&self) -> Vec<Box<dyn Effect<T>>>
+    pub fn generate<T>(&self) -> Vec<Box<dyn Effect<T> + Send + Sync>>
     where
         filters::HueRotate: Effect<T>,
         filters::Contrast: Effect<T>,

@@ -95,7 +95,7 @@ impl Checker {
     }
 
     fn parse_kind(value: &Value) -> CheckerKind {
-        let kind = value.get("kind").unwrap().as_str().unwrap();
+        let kind = value.get("type").unwrap().as_str().unwrap();
 
         match kind {
             "iter" => Self::parse_iter(value),

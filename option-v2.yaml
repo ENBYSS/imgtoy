@@ -98,11 +98,12 @@ effects:
       checker:
         chance: 0.8
         type: from
-        source:
-          type: center
-        factor:
-          type: linear
-        modulo: [2, 4, 8, 16, 32, 64]
+        from:
+          source:
+            type: center
+          factor:
+            type: linear
+          modulo: [2, 4, 8, 16, 32, 64]
 
       invert: 0.5
 

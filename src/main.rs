@@ -3,6 +3,9 @@ use std::{error::Error, fs::File, path::Path};
 use image::{codecs::gif::GifEncoder, DynamicImage, Frame};
 use indicatif::{ProgressBar, ProgressStyle};
 use rand::{rngs::StdRng, SeedableRng};
+use rayon::iter::{
+    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
+};
 use source::{MediaType, Source, SourceKind};
 
 use crate::{
@@ -37,21 +40,21 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut rng = StdRng::from_os_rng();
 
-    // let maincfg = MainConfiguration::from_value(&yaml);
+    let maincfg = MainConfiguration::from_value(&yaml);
     // panic!("EMERGENCY EXIT - Testing out Main Configuration system. Here is the detected config. Use the V2 config due to changes.\n {maincfg:#?}");
 
-    let source = parse_source(&yaml);
+    // let source = parse_source(&yaml);
 
-    let (source_kind, source_path) = match &source.source {
-        SourceKind::File(path) => {
-            println!("[...] - Source is file at path: {path}");
-            ("file", path)
-        }
-        SourceKind::Url(url) => {
-            println!("[...] - Source is at URL: {url}");
-            ("url", url)
-        }
-    };
+    // let (source_kind, source_path) = match &source.source {
+    //     SourceKind::File(path) => {
+    //         println!("[...] - Source is file at path: {path}");
+    //         ("file", path)
+    //     }
+    //     SourceKind::Url(url) => {
+    //         println!("[...] - Source is at URL: {url}");
+    //         ("url", url)
+    //     }
+    // };
 
     let output = yaml
         .get("output")
@@ -71,35 +74,31 @@ fn main() -> Result<(), Box<dyn Error>> {
         std::fs::create_dir_all(out_path)?;
     }
 
-    let mut log = SystemLog::init(out_path.into())?;
-    log.header("APP INIT")?
-        .sys_log("app started")?
-        .begin_category("source")?
-        .state_property("file", source_path)?
-        .state_property("media-type", source_kind)?
-        .state_property(
-            "max-dim",
-            source
-                .max_dim
-                .map(|n| n.to_string())
-                .unwrap_or("<N/A>".into()),
-        )?
-        .end_category()?
-        .begin_category("output")?
-        .state_property("path", out_path)?;
+    // let mut log = SystemLog::init(out_path.into())?;
+    // log.header("APP INIT")?
+    //     .sys_log("app started")?
+    //     .begin_category("source")?
+    //     .state_property("file", source_path)?
+    //     .state_property("media-type", source_kind)?
+    //     .state_property(
+    //         "max-dim",
+    //         source
+    //             .max_dim
+    //             .map(|n| n.to_string())
+    //             .unwrap_or("<N/A>".into()),
+    //     )?
+    //     .end_category()?
+    //     .begin_category("output")?
+    //     .state_property("path", out_path)?;
 
-    let iterations = output
-        .get("n")
-        .expect("[n] must be specified.")
-        .as_u64()
-        .expect("[output.n] must be a positive integer.");
+    let iterations = maincfg.output.n as u64;
 
-    log.state_property("n", iterations.to_string())?;
-    log.end_category()?; // output
+    // log.state_property("n", iterations.to_string())?;
+    // log.end_category()?; // output
 
     println!("[ ! ] - Running {iterations} iterations...");
 
-    let media = source.perform()?;
+    let media = maincfg.source.perform()?;
 
     // TODO: Add initial setup.
 
@@ -119,29 +118,30 @@ fn main() -> Result<(), Box<dyn Error>> {
     //     }
     // });
 
-    log.header("EXECUTION")?;
+    // log.header("EXECUTION")?;
 
-    for i in 0..iterations {
+    (0..iterations).into_par_iter().for_each(|i| {
         bar.inc(1);
 
-        log.begin_category(format!("[{i}]"))?;
+        // log.begin_category(format!("[{i}]"))?;
 
         match &media {
             ImageResult::Image(img) => {
-                let effects = parse_effects::<DynamicImage>(&mut log, &mut rng, &yaml)?;
+                let effects = maincfg.effects.generate::<DynamicImage>();
                 let mut image = img.clone();
-                for effect in &effects {
+                for effect in effects.iter() {
                     bar.tick();
                     image = effect.affect(image);
                 }
-                image.save(format!("{out_path}/{i:<05}.png"))?;
+
+                image.save(format!("{out_path}/{i:<05}.png")).unwrap();
             }
             ImageResult::Gif(gif) => {
-                let effects = parse_effects::<Frame>(&mut log, &mut rng, &yaml)?;
+                let effects = maincfg.effects.generate::<Frame>();
                 let frames = gif.clone();
                 let frames_amnt = frames.len();
                 let frames = frames
-                    .into_iter()
+                    .into_par_iter()
                     .enumerate()
                     .map(|(i, mut frame)| {
                         bar.set_message(format!("frame {i} of {frames_amnt}"));
@@ -162,9 +162,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
 
-        log.end_category()?;
-        log.newline()?;
-    }
+        // log.end_category()?;
+        // log.newline()?;
+    });
 
     let dur = bar.duration();
     let h = dur.as_secs() / (60 * 60);

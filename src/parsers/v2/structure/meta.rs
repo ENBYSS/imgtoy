@@ -1,6 +1,11 @@
+use std::error::Error;
+
 use serde_yaml::Value;
 
-use crate::parsers::v2::structure::value::{parse_property_as_usize, Vusize};
+use crate::{
+    parsers::v2::structure::value::{parse_property_as_usize, Vusize},
+    source::{parse_localfile, parse_webfile, resize_image_with_max_dim, ImageResult},
+};
 
 #[derive(Debug)]
 pub enum SourceKind {
@@ -50,9 +55,11 @@ impl MediaType {
 #[derive(Debug)]
 pub struct Source {
     kind: SourceKind,
-    media_type: MediaType,
+    // media_type: MediaType,
     max_dim: Option<Vusize>,
 }
+
+type UtilResult<T> = Result<T, Box<dyn Error>>;
 
 impl Source {
     pub fn from_value(value: &Value) -> Self {
@@ -60,16 +67,51 @@ impl Source {
 
         Self {
             kind: SourceKind::from_value(source),
-            media_type: MediaType::from_value(source),
-            max_dim: parse_property_as_usize(value, "max-dim"),
+            // media_type: MediaType::from_value(source),
+            max_dim: parse_property_as_usize(source, "max-dim"),
         }
+    }
+
+    pub fn perform(&self) -> UtilResult<ImageResult> {
+        let result = match &self.kind {
+            SourceKind::File(target) => {
+                let file = parse_localfile(target)?;
+
+                if self.max_dim.is_some() {
+                    if let ImageResult::Image(image) = file {
+                        resize_image_with_max_dim(&image, self.max_dim.as_ref().unwrap().generate())
+                            .into()
+                    } else {
+                        file
+                    }
+                } else {
+                    file
+                }
+            }
+            SourceKind::Url(target) => {
+                let file = parse_webfile(target)?;
+
+                if self.max_dim.is_some() {
+                    if let ImageResult::Image(image) = file {
+                        resize_image_with_max_dim(&image, self.max_dim.as_ref().unwrap().generate())
+                            .into()
+                    } else {
+                        file
+                    }
+                } else {
+                    file
+                }
+            }
+        };
+
+        Ok(result)
     }
 }
 
 #[derive(Debug)]
 pub struct Output {
-    path: String,
-    n: usize,
+    pub path: String,
+    pub n: usize,
 }
 
 impl Output {

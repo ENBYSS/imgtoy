@@ -1,3 +1,4 @@
+use rand::Rng;
 use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{
@@ -6,29 +7,74 @@ use crate::parsers::v2::structure::value::{
 
 #[derive(Debug)]
 pub enum LumStrategyKind {
-    StackedExact { exact: Vec<Vf64> },
-    Exact { exact: Vf64 },
-    Random { count: Vusize, stack: bool },
-    StackDistributed,
-    StackDistributedArea { overlap: Vf64 },
-    StackDistributedNudge { nudge_size: Vf64, per_lum: bool },
-    LoopingPreference { segments: Vusize },
+    StackedExact {
+        stacks: Vusize,
+        exact: Vec<Vf64>,
+    },
+    Exact {
+        exact: Vf64,
+    },
+    Random {
+        count: Vusize,
+        stack: bool,
+    },
+    StackDistributed {
+        stacks: Vusize,
+    },
+    StackDistributedArea {
+        stacks: Vusize,
+        overlap: Vf64,
+    },
+    StackDistributedNudge {
+        stacks: Vusize,
+        nudge_size: Vf64,
+        per_lum: bool,
+    },
+    LoopingPreference {
+        segments: Vusize,
+    },
 }
 
 impl LumStrategyKind {
-    pub fn generate(&self, hues: &Vec<f32>) -> Vec<(f32, f32)> {
+    pub fn generate(&self, hues: &Vec<f32>, min_lum: f64, max_lum: f64) -> Vec<(f32, f32)> {
         match self {
             Self::Exact { exact } => unimplemented!(),
-            Self::StackedExact { exact } => unimplemented!(),
+            Self::StackedExact { stacks, exact } => unimplemented!(),
             Self::Random { count, stack } => unimplemented!(),
-            Self::StackDistributed => unimplemented!(),
-            Self::StackDistributedArea { overlap } => unimplemented!(),
+            Self::StackDistributed { stacks } => unimplemented!(),
+            Self::StackDistributedArea { stacks, overlap } => {
+                let mut cols = Vec::new();
+                for hue in hues.iter() {
+                    let stacks = stacks.generate();
+                    for mut i in 0..stacks {
+                        let span_size = max_lum - min_lum;
+                        let step_size = span_size / stacks as f64;
+
+                        let mut area_start = min_lum + (i as f64 * step_size);
+                        let mut area_end = area_start + step_size;
+
+                        let overlap = overlap.generate();
+
+                        area_start = (area_start - overlap).max(min_lum);
+                        area_end = (area_end + overlap).min(max_lum);
+
+                        let l = rand::rng().random_range(area_start..area_end) as f32;
+                        cols.push((*hue, l));
+                    }
+                }
+                cols
+            }
             Self::StackDistributedNudge {
                 nudge_size,
                 per_lum,
+                stacks,
             } => unimplemented!(),
             Self::LoopingPreference { segments } => unimplemented!(),
         }
+    }
+
+    fn parse_stacks(value: &Value) -> Vusize {
+        parse_property_as_usize(value, "count").unwrap()
     }
 
     fn parse_lum_list(value: &Value) -> Vec<Vf64> {
@@ -49,6 +95,7 @@ impl LumStrategyKind {
     pub fn parse_stacked_exact(value: &Value) -> Self {
         Self::StackedExact {
             exact: Self::parse_lum_list(value),
+            stacks: Self::parse_stacks(value),
         }
     }
 
@@ -65,9 +112,16 @@ impl LumStrategyKind {
         }
     }
 
+    pub fn parse_stacked_distributed(value: &Value) -> Self {
+        Self::StackDistributed {
+            stacks: Self::parse_stacks(value),
+        }
+    }
+
     pub fn parse_stacked_distributed_area(value: &Value) -> Self {
         Self::StackDistributedArea {
             overlap: parse_property_as_f64(value, "overlap").unwrap(),
+            stacks: Self::parse_stacks(value),
         }
     }
 
@@ -75,6 +129,7 @@ impl LumStrategyKind {
         Self::StackDistributedNudge {
             nudge_size: parse_property_as_f64(value, "nudge-size").unwrap(),
             per_lum: value.get("per-lum").unwrap().as_bool().unwrap(),
+            stacks: Self::parse_stacks(value),
         }
     }
 
@@ -88,6 +143,8 @@ impl LumStrategyKind {
 #[derive(Debug)]
 pub struct LumStrategy {
     kind: LumStrategyKind,
+    min_lum: Option<Vf64>,
+    max_lum: Option<Vf64>,
 }
 
 impl LumStrategy {
@@ -98,17 +155,25 @@ impl LumStrategy {
             "stacked-exact" => LumStrategyKind::parse_stacked_exact(value),
             "exact" => LumStrategyKind::parse_exact(value),
             "random" => LumStrategyKind::parse_random(value),
-            "distributed" => LumStrategyKind::StackDistributed,
+            "distributed" => LumStrategyKind::parse_stacked_distributed(value),
             "distributed/area" => LumStrategyKind::parse_stacked_distributed_area(value),
             "distributed/nudge" => LumStrategyKind::parse_stacked_distributed_nudge(value),
             "looping-preference" => LumStrategyKind::parse_looping_preference(value),
             _ => todo!(),
         };
 
-        Self { kind }
+        Self {
+            kind,
+            min_lum: parse_property_as_f64(value, "min-lum"),
+            max_lum: parse_property_as_f64(value, "max-lum"),
+        }
     }
 
     pub fn attach_lums(&self, hues: &Vec<f32>) -> Vec<(f32, f32)> {
-        self.kind.generate(hues)
+        self.kind.generate(
+            hues,
+            self.min_lum.as_ref().map(|l| l.generate()).unwrap_or(0.0),
+            self.max_lum.as_ref().map(|l| l.generate()).unwrap_or(100.0),
+        )
     }
 }
