@@ -1,11 +1,12 @@
 use serde_yaml::Value;
 
-use crate::parsers::v2::palette::{chroma::ChromaStrategy, hue::HueStrategy, lum::LumStrategy};
+use crate::parsers::v2::palette::{chroma::ChromaStrategy, hue::HueStrategies, lum::LumStrategy};
 
 pub mod chroma;
 pub mod hue;
 pub mod lum;
 
+#[derive(Debug)]
 pub struct MiscFlags {
     extremes: bool,
 }
@@ -37,10 +38,11 @@ impl MiscFlags {
     }
 }
 
+#[derive(Debug)]
 pub struct PaletteConfig {
     lum_strategy: LumStrategy,
     chroma_strategy: ChromaStrategy,
-    hue_strategy: HueStrategy,
+    hue_strategies: HueStrategies,
     misc_flag: MiscFlags,
 }
 
@@ -53,28 +55,31 @@ impl PaletteConfig {
         ChromaStrategy::from_value(value.get("chroma-strategy").unwrap())
     }
 
-    fn parse_hue_strategy(value: &Value) -> HueStrategy {
-        HueStrategy::from_value(value.get("hue-strategy").unwrap())
+    fn parse_hue_strategy(value: &Value) -> HueStrategies {
+        HueStrategies::from_value(value.get("hue-strategies").unwrap())
     }
 
     pub fn from_value(value: &Value) -> Self {
         Self {
             lum_strategy: Self::parse_lum_strategy(value),
             chroma_strategy: Self::parse_chroma_strategy(value),
-            hue_strategy: Self::parse_hue_strategy(value),
+            hue_strategies: Self::parse_hue_strategy(value),
             misc_flag: MiscFlags::from_value(value),
         }
     }
 }
 
+#[derive(Debug)]
 pub struct Palette {
     config: PaletteConfig,
 }
 
 impl Palette {
     pub fn from_value(value: &Value) -> Self {
+        let value = value.get("palette").unwrap();
+        let value = value.get("config").unwrap();
         Self {
-            config: PaletteConfig::from_value(value.get("palette").unwrap()),
+            config: PaletteConfig::from_value(value),
         }
     }
 }

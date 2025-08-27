@@ -1,5 +1,6 @@
 use serde_yaml::Value;
 
+#[derive(Debug)]
 pub enum ErrorPropagatorKind {
     FloydSteinberg,
     JarvisJudiceNinke,
@@ -11,6 +12,7 @@ pub enum ErrorPropagatorKind {
     SierraLite,
 }
 
+#[derive(Debug)]
 pub struct ErrorPropagator {
     kind: ErrorPropagatorKind,
 }

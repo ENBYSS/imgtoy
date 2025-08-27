@@ -1,9 +1,7 @@
 use serde_yaml::Value;
 
 use crate::parsers::v2::{
-    effects::Effects,
     ordered::{
-        self,
         modifiers::{
             checker::Checker,
             mirror::Mirror,
@@ -15,11 +13,12 @@ use crate::parsers::v2::{
     palette::{self, Palette},
 };
 
+#[derive(Debug)]
 /// Represents dithering using the Ordered strategy.
 pub struct Ordered {
     /// A list of strategies listed under this.
     /// Only one of these will be selected.
-    strategies: Effects,
+    strategies: Vec<Effect>,
     blur: Option<Blur>,
     exponentiate: Option<Exponentiate>,
     rotation: Option<Rotation>,
@@ -31,8 +30,17 @@ pub struct Ordered {
 
 impl Ordered {
     pub fn from_value(value: &Value) -> Self {
+        let value = value.get("ordered").unwrap();
+
         Self {
-            strategies: Effects::from_value(value),
+            strategies: value
+                .get("strategies")
+                .unwrap()
+                .as_sequence()
+                .unwrap()
+                .iter()
+                .map(|e| Effect::from_value(e))
+                .collect(),
             blur: Blur::from_value(value),
             exponentiate: Exponentiate::from_value(value),
             rotation: Rotation::from_value(value),

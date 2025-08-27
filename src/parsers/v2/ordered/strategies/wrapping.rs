@@ -1,5 +1,6 @@
 use serde_yaml::Value;
 
+#[derive(Debug)]
 pub enum WrappingKind {
     Horizontal,
     Vertical,
@@ -7,6 +8,7 @@ pub enum WrappingKind {
     None,
 }
 
+#[derive(Debug)]
 pub struct Wrapping {
     kinds: Vec<WrappingKind>,
 }

@@ -1,6 +1,7 @@
 use palette::rgb::Rgb;
 use serde_yaml::Value;
 
+#[derive(Debug)]
 pub struct GradientMap {
     inner: Vec<(Rgb, f32)>,
 }

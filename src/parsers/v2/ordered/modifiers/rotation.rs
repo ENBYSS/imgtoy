@@ -2,6 +2,7 @@ use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{parse_property_as_f64, ValueProperty, Vf64};
 
+#[derive(Debug)]
 pub enum RotationDirection {
     RIGHT,
     LEFT,
@@ -9,6 +10,7 @@ pub enum RotationDirection {
     NONE,
 }
 
+#[derive(Debug)]
 pub struct Rotation {
     chance: Vf64,
     values: Vec<RotationDirection>,

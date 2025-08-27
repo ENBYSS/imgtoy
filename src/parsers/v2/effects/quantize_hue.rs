@@ -2,6 +2,7 @@ use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{ValueProperty, Vf64};
 
+#[derive(Debug)]
 pub struct QuantizeHue {
     hues: Vec<Vf64>,
 }

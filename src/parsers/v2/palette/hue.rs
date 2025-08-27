@@ -4,6 +4,7 @@ use crate::parsers::v2::structure::value::{
     parse_property_as_f64, parse_property_as_usize, Vf64, Vusize,
 };
 
+#[derive(Debug)]
 pub enum HueDistribution {
     Linear,
     Random,
@@ -19,6 +20,7 @@ impl From<&str> for HueDistribution {
     }
 }
 
+#[derive(Debug)]
 pub enum HueStrategyKind {
     Neighbour {
         size: Vf64,
@@ -90,12 +92,13 @@ impl HueStrategyKind {
     }
 }
 
-pub struct HueStrategy {
-    kind: HueStrategyKind,
+#[derive(Debug)]
+pub struct HueStrategies {
+    kinds: Vec<HueStrategyKind>,
 }
 
-impl HueStrategy {
-    pub fn from_value(value: &Value) -> Self {
+impl HueStrategies {
+    fn parse_hue_strategy(value: &Value) -> HueStrategyKind {
         let kind = value.get("type").unwrap().as_str().unwrap();
 
         let kind = match kind {
@@ -106,6 +109,17 @@ impl HueStrategy {
             _ => todo!(),
         };
 
-        HueStrategy { kind }
+        kind
+    }
+
+    pub fn from_value(value: &Value) -> Self {
+        Self {
+            kinds: value
+                .as_sequence()
+                .unwrap()
+                .iter()
+                .map(|s| Self::parse_hue_strategy(s))
+                .collect(),
+        }
     }
 }

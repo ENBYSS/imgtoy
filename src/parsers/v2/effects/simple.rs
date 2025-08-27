@@ -2,6 +2,7 @@ use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{parse_property_as_f64, ValueProperty};
 
+#[derive(Debug)]
 /// Represents a brighten effect.
 pub struct Brighten(ValueProperty<f64>);
 
@@ -11,6 +12,7 @@ impl Brighten {
     }
 }
 
+#[derive(Debug)]
 /// Represents a saturation effect.
 pub struct Saturate(ValueProperty<f64>);
 
@@ -20,6 +22,7 @@ impl Saturate {
     }
 }
 
+#[derive(Debug)]
 /// Represents a constrast effect.
 pub struct Contrast(ValueProperty<f64>);
 
@@ -29,6 +32,7 @@ impl Contrast {
     }
 }
 
+#[derive(Debug)]
 /// Represents a hue rotation effect.
 pub struct HueRotate(ValueProperty<f64>);
 
@@ -38,6 +42,7 @@ impl HueRotate {
     }
 }
 
+#[derive(Debug)]
 pub struct MultiplyHue(ValueProperty<f64>);
 
 impl MultiplyHue {

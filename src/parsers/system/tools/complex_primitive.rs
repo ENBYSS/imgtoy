@@ -1,4 +1,4 @@
-use rand::{distributions::uniform::SampleUniform, seq::SliceRandom, Rng};
+use rand::{distr::uniform::SampleUniform, seq::IndexedRandom, Rng};
 use serde_yaml::Value;
 
 use crate::{effects::Log, parsers::system::tools::parameter_range::ParameterRange};

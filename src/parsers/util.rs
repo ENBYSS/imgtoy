@@ -7,7 +7,10 @@ use crate::{
 };
 
 pub mod logless {
-    use rand::{seq::SliceRandom, Rng};
+    use rand::{
+        seq::{IndexedRandom, SliceRandom},
+        Rng,
+    };
     use serde_yaml::{Mapping, Value};
 
     pub fn parse_property_as_u64(

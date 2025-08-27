@@ -4,6 +4,7 @@ use crate::parsers::v2::structure::value::{
     parse_property_as_f64, parse_property_as_usize, ValueProperty, Vf64, Vusize,
 };
 
+#[derive(Debug)]
 pub struct Invert {
     chance: Vf64,
 }
@@ -22,6 +23,7 @@ impl Invert {
     }
 }
 
+#[derive(Debug)]
 pub struct Exponentiate {
     chance: Vf64,
     factor: Vf64,
@@ -44,6 +46,7 @@ impl Exponentiate {
     }
 }
 
+#[derive(Debug)]
 pub struct Blur {
     chance: Vf64,
     factor: Vusize,

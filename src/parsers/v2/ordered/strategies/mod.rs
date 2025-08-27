@@ -19,6 +19,7 @@ pub mod increase;
 pub mod orientation;
 pub mod wrapping;
 
+#[derive(Debug)]
 pub enum Effect {
     Bayer {
         matrix_size: Vusize,
@@ -160,9 +161,9 @@ impl Effect {
                 matrix_size: parse_matrix_size(effect),
                 amplitude: parse_property_as_f64(effect, "amplitude")
                     .unwrap_or(ValueProperty::Fixed(1.0)),
-                promotion: parse_property_as_f64(value, "promotion")
+                promotion: parse_property_as_f64(effect, "promotion")
                     .unwrap_or(ValueProperty::Fixed(0.0)),
-                halt_threshold: parse_property_as_usize(value, "halt-threshold").unwrap(),
+                halt_threshold: parse_property_as_usize(effect, "halt-threshold").unwrap(),
             },
             "zigzag" => Self::Zigzag {
                 matrix_size: parse_matrix_size(effect),
@@ -199,7 +200,7 @@ impl Effect {
                 iterations: parse_property_as_usize(effect, "iterations")
                     .unwrap_or(ValueProperty::Fixed(1)),
             },
-            _ => todo!(),
+            _ => todo!("didn't expect {effect_name}"),
         }
     }
 }

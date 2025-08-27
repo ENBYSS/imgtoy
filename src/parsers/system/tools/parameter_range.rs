@@ -1,4 +1,4 @@
-use rand::{distributions::uniform::SampleUniform, Rng};
+use rand::{distr::uniform::SampleUniform, Rng};
 use serde_yaml::Value;
 
 use crate::{

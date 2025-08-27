@@ -6,17 +6,19 @@ use crate::parsers::v2::structure::value::{
     parse_property_as_f64, parse_property_as_usize, ValueProperty, Vf64, Vusize,
 };
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub enum IncreaseValueKind {
     Linear(Vusize),
     Exponential(Vusize),
 }
 
+#[derive(Debug)]
 pub enum IncreaseKind {
     Exact(IncreaseValueKind),
     Ratios(HashMap<IncreaseValueKind, f64>),
 }
 
+#[derive(Debug)]
 pub struct Increase {
     kind: IncreaseKind,
     chance: Vf64,

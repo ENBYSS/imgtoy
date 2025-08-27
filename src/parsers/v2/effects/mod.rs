@@ -14,6 +14,7 @@ pub mod ordered;
 pub mod quantize_hue;
 pub mod simple;
 
+#[derive(Debug)]
 pub enum EffectKind {
     Brighten(Brighten),
     Saturate(Saturate),
@@ -106,6 +107,7 @@ impl EffectKind {
     }
 }
 
+#[derive(Debug)]
 pub struct Effects {
     kinds: Vec<EffectKind>,
 }
@@ -114,7 +116,7 @@ impl Effects {
     pub fn from_value(value: &Value) -> Self {
         Self {
             kinds: value
-                .get("strategies")
+                .get("effects")
                 .unwrap()
                 .as_sequence()
                 .unwrap()

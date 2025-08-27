@@ -5,7 +5,11 @@ use indicatif::{ProgressBar, ProgressStyle};
 use rand::{rngs::StdRng, SeedableRng};
 use source::{MediaType, Source, SourceKind};
 
-use crate::{logging::alt::SystemLog, parsers::effects::parse_effects};
+use crate::{
+    logging::alt::SystemLog,
+    parsers::{effects::parse_effects, v2::structure::MainConfiguration},
+    source::ImageResult,
+};
 
 mod effects;
 mod logging;
@@ -31,7 +35,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("[...] - Parsing YAML as configuration");
 
-    let mut rng = StdRng::from_entropy();
+    let mut rng = StdRng::from_os_rng();
+
+    // let maincfg = MainConfiguration::from_value(&yaml);
+    // panic!("EMERGENCY EXIT - Testing out Main Configuration system. Here is the detected config. Use the V2 config due to changes.\n {maincfg:#?}");
 
     let source = parse_source(&yaml);
 
@@ -111,19 +118,19 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         log.begin_category(format!("[{i}]"))?;
 
-        match source.media_type {
-            MediaType::Image => {
+        match &media {
+            ImageResult::Image(img) => {
                 let effects = parse_effects::<DynamicImage>(&mut log, &mut rng, &yaml)?;
-                let mut image = media.clone().into_image().unwrap();
+                let mut image = img.clone();
                 for effect in &effects {
                     bar.tick();
                     image = effect.affect(image);
                 }
                 image.save(format!("{out_path}/{i:<05}.png"))?;
             }
-            MediaType::Gif => {
+            ImageResult::Gif(gif) => {
                 let effects = parse_effects::<Frame>(&mut log, &mut rng, &yaml)?;
-                let frames = media.clone().into_gif().unwrap();
+                let frames = gif.clone();
                 let frames_amnt = frames.len();
                 let frames = frames
                     .into_iter()
@@ -187,17 +194,17 @@ fn parse_source(root_value: &serde_yaml::Value) -> Source {
             .expect("[source.file] must be a string - wasn't.")
     });
 
-    let media_type = source
-        .get("media_type")
-        .expect("[source.media_type] was not present - is required.")
-        .as_str()
-        .expect("[source.media_type] must be a string - wasn't.");
+    // let media_type = source
+    //     .get("media_type")
+    //     .expect("[source.media_type] was not present - is required.")
+    //     .as_str()
+    //     .expect("[source.media_type] must be a string - wasn't.");
 
-    let media_type = match media_type {
-        "image" => MediaType::Image,
-        "gif" => MediaType::Gif,
-        _ => panic!("[source.media_type] must be 'image' or 'gif' - was actually {media_type}"),
-    };
+    // let media_type = match media_type {
+    //     "image" => MediaType::Image,
+    //     "gif" => MediaType::Gif,
+    //     _ => panic!("[source.media_type] must be 'image' or 'gif' - was actually {media_type}"),
+    // };
 
     let source_kind = if let Some(url) = url {
         SourceKind::Url(url.into())
@@ -219,7 +226,7 @@ fn parse_source(root_value: &serde_yaml::Value) -> Source {
 
     Source {
         source: source_kind,
-        media_type,
+        // media_type,
         max_dim,
     }
 }

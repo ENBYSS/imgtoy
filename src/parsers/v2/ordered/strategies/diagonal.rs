@@ -2,17 +2,19 @@ use std::collections::HashMap;
 
 use serde_yaml::Value;
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub enum DiagonalDirection {
     DownRight,
     UpRight,
 }
 
+#[derive(Debug)]
 pub enum DiagonalKind {
     Ratios(HashMap<DiagonalDirection, f64>),
     Exact(DiagonalDirection),
 }
 
+#[derive(Debug)]
 pub struct Diagonal {
     kind: DiagonalKind,
 }

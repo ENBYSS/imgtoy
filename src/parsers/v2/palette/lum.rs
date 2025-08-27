@@ -4,6 +4,7 @@ use crate::parsers::v2::structure::value::{
     parse_property_as_f64, parse_property_as_usize, ValueProperty, Vf64, Vusize,
 };
 
+#[derive(Debug)]
 pub enum LumStrategyKind {
     StackedExact { exact: Vec<Vf64> },
     Exact { exact: Vf64 },
@@ -69,6 +70,7 @@ impl LumStrategyKind {
     }
 }
 
+#[derive(Debug)]
 pub struct LumStrategy {
     kind: LumStrategyKind,
 }

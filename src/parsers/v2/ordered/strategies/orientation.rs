@@ -2,17 +2,19 @@ use std::collections::HashMap;
 
 use serde_yaml::Value;
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub enum OrientationValueKind {
     Horizontal,
     Vertical,
 }
 
+#[derive(Debug)]
 pub enum OrientationKind {
     Exact(OrientationValueKind),
     Ratios(HashMap<OrientationValueKind, f64>),
 }
 
+#[derive(Debug)]
 pub struct Orientation {
     kind: OrientationKind,
 }

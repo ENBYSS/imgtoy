@@ -1,5 +1,8 @@
 use image_effects::dither::ordered::tools::mirror::{MirrorDirection, MirrorLine};
-use rand::{seq::SliceRandom, Rng};
+use rand::{
+    seq::{IndexedRandom, SliceRandom},
+    Rng,
+};
 use serde_yaml::Value;
 
 use crate::{

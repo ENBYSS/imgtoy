@@ -2,7 +2,10 @@ use std::ops::Range;
 
 use image_effects::prelude::IntoGradientLch;
 use palette::{named, rgb::Rgb, IntoColor, Lch, Srgb};
-use rand::{seq::SliceRandom, Rng};
+use rand::{
+    seq::{IndexedRandom, SliceRandom},
+    Rng,
+};
 use serde_yaml::Value;
 
 use crate::{
@@ -180,11 +183,19 @@ fn generate_random_palette_v2(
     // lum strategy application
     if flag_single_lum {
         for i in 0..lum_amnt {
-            palette.push(Lch::new(1.0 * (i as f32 / lum_amnt as f32), rng.gen_range(0.0..128.0), seed_hue as f32));
+            palette.push(Lch::new(
+                1.0 * (i as f32 / lum_amnt as f32),
+                rng.gen_range(0.0..128.0),
+                seed_hue as f32,
+            ));
         }
 
         for hue in hues.iter() {
-            palette.push(Lch::new(rng.gen_range(min_lum as f32..max_lum as f32), rng.gen_range(0.0..128.0), *hue as f32))
+            palette.push(Lch::new(
+                rng.gen_range(min_lum as f32..max_lum as f32),
+                rng.gen_range(0.0..128.0),
+                *hue as f32,
+            ))
         }
     } else {
         palette = use_original_lum_strategy(

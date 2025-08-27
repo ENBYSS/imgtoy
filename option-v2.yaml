@@ -1,11 +1,12 @@
 source:
   #file: "/home/enbyss/gimp/images/like-a-pirate-yakuza-pt-A.png"
   #url: "https://egirls.gay/files/webpublic-40072a5a-59f0-485b-8b70-cb864a7f99bc"
-  url: "https://media1.tenor.com/m/pG7R6ThRw_QAAAAC/of-the-devil-otd.gif"
+  url: "https://media.discordapp.net/attachments/1401753090205679736/1410149244635054081/20250827_082417.jpg?ex=68aff753&is=68aea5d3&hm=54b343a60ffb5e8a7fd2e313c96bd5d897e80864f87ebf41a71fa88d055d2687&"
+  media-type: "image"
   #max_dim: 1920
   # max_dim: 320
   # max_dim: 640
-  max_dim: 960
+  max-dim: 960
 
 output:
   path: "./output/test/_quickmake"
@@ -45,6 +46,7 @@ effects:
             matrix-size: [4, 8, 16, 32, 64, 128]
             amplitude: { min: 0.1, max: 1.0 }
             promotion: { min: 0.001, max: 0.05 }
+            halt-threshold: 100
 
         - zigzag:
             matrix-size: [4, 8, 16, 32, 64, 128]
@@ -120,7 +122,6 @@ effects:
           - [vertical, horizontal, downright, upright]
 
       palette:
-        type: random_v2
         config:
           #min_lum: { min: 0.0, max: 25.0 }
           #max_lum: { min: 75.0, max: 100.0 }
@@ -137,20 +138,20 @@ effects:
             - type: "neighbour"
               size: { min: 1.0, max: 30.0 }
               count: { min: 2, max: 8 }
-              dist: "random"
+              distribution: "random"
             - type: "contrast"
               size: { min: 1.0, max: 30.0 }
               count: { min: 2, max: 8 }
-              dist: "random"
+              distribution: "random"
             - type: "penpal"
               size: { min: 1.0, max: 30.0 }
               count: { min: 2, max: 8 }
-              dist: "linear"
+              distribution: "linear"
               distance: { min: 90.0, max: 270.0 }
               iterations: { min: 1, max: 5 }
           #            - type: "cycle"
           #              count: {min: 4, max: 20}
-          misc_flags:
+          misc-flags:
             - "extremes"
             - "single_lum"
             #- "grayscale"

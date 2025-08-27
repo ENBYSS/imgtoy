@@ -1,9 +1,11 @@
 use serde_yaml::Value;
 
+#[derive(Debug)]
 pub enum ChromaStrategyKind {
     Random,
 }
 
+#[derive(Debug)]
 pub struct ChromaStrategy {
     kind: ChromaStrategyKind,
 }

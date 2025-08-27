@@ -2,6 +2,7 @@ use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{Vf64, Vusize};
 
+#[derive(Debug)]
 pub enum CheckerKind {
     Iter(Vusize),
     From {
@@ -11,24 +12,29 @@ pub enum CheckerKind {
     },
 }
 
+#[derive(Debug)]
 pub enum CheckerSourceKind {
     Center,
     Fixed((Vusize, Vusize)),
 }
 
+#[derive(Debug)]
 pub struct CheckerSource {
     kind: CheckerSourceKind,
 }
 
+#[derive(Debug)]
 pub enum CheckerFactorKind {
     Linear,
     Exponential,
 }
 
+#[derive(Debug)]
 pub struct CheckerFactor {
     kind: CheckerFactorKind,
 }
 
+#[derive(Debug)]
 pub struct Checker {
     chance: Vf64,
     kind: CheckerKind,

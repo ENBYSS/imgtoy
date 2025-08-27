@@ -1,5 +1,8 @@
 use image_effects::dither::ordered::tools::properties::Rotation;
-use rand::{seq::SliceRandom, Rng};
+use rand::{
+    seq::{IndexedRandom, SliceRandom},
+    Rng,
+};
 use serde_yaml::Value;
 
 use crate::{
