@@ -7,20 +7,18 @@ use rand::{rngs::StdRng, SeedableRng};
 use rayon::iter::{
     IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
 };
-use source::{MediaType, Source, SourceKind};
 
-use crate::{
-    logging::alt::SystemLog,
-    parsers::{effects::parse_effects, v2::structure::MainConfiguration},
-    source::ImageResult,
-};
+use crate::{parsers::v2::structure::MainConfiguration, utils::image::ImageResult};
 
 mod effects;
+mod ffmpeg;
 mod logging;
 mod parsers;
-mod source;
+mod utils;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    // FfmpegUtil::demo();
+
     let mut args = std::env::args();
 
     let label_processing = "[...]".blue();
@@ -96,9 +94,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         "{label_processing} | Processing image: {}",
         maincfg.source.kind.get_path()
     );
-    println!("      | ...with max size: {}", maincfg.source.max_dim_str());
+    println!(
+        "      | ...with constraint: {}",
+        maincfg.source.constraint_str()
+    );
 
-    let media = maincfg.source.perform()?;
+    let media = maincfg.source.perform();
     let dims = media.get_dimensions();
 
     println!("{label_info} | Image dimensions are: {dims:?}]");
@@ -158,6 +159,9 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .unwrap();
                 encoder.encode_frames(frames.into_iter()).unwrap();
             }
+            ImageResult::Anim(anim) => {
+                todo!("Not currently supported")
+            }
         }
 
         // log.end_category()?;
@@ -171,68 +175,4 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("done in {h:0>2}:{m:0>2}:{s:0>2}!");
 
     Ok(())
-}
-
-fn parse_source(root_value: &serde_yaml::Value) -> Source {
-    let source = root_value
-        .get("source")
-        .expect("[source] was not present - is required.")
-        .as_mapping()
-        .expect("[source] must be a map - wasn't.");
-
-    let url = source.get("url");
-    let file = source.get("file");
-
-    if url.is_some() && file.is_some() {
-        panic!("only one of [source.url] and [source.file] can be present.");
-    } else if url.is_none() && file.is_none() {
-        panic!("at least one of [source.url] or [source.file] must be present");
-    }
-
-    let url = url.map(|target| {
-        target
-            .as_str()
-            .expect("[source.url] must be a string - wasn't.")
-    });
-    let file = file.map(|target| {
-        target
-            .as_str()
-            .expect("[source.file] must be a string - wasn't.")
-    });
-
-    // let media_type = source
-    //     .get("media_type")
-    //     .expect("[source.media_type] was not present - is required.")
-    //     .as_str()
-    //     .expect("[source.media_type] must be a string - wasn't.");
-
-    // let media_type = match media_type {
-    //     "image" => MediaType::Image,
-    //     "gif" => MediaType::Gif,
-    //     _ => panic!("[source.media_type] must be 'image' or 'gif' - was actually {media_type}"),
-    // };
-
-    let source_kind = if let Some(url) = url {
-        SourceKind::Url(url.into())
-    } else if let Some(file) = file {
-        SourceKind::File(file.into())
-    } else {
-        unreachable!()
-    };
-
-    let max_dim = if let Some(max_dim) = source.get("max_dim") {
-        if let Some(max_dim) = max_dim.as_u64() {
-            Some(max_dim as usize)
-        } else {
-            panic!("[max_dim] must be a positive integer.");
-        }
-    } else {
-        None
-    };
-
-    Source {
-        source: source_kind,
-        // media_type,
-        max_dim,
-    }
 }

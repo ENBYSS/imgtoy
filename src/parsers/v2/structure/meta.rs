@@ -1,11 +1,12 @@
 use std::error::Error;
 
+use image::{imageops, DynamicImage, GenericImageView};
 use regex::Regex;
 use serde_yaml::Value;
 
 use crate::{
     parsers::v2::structure::value::{parse_property_as_usize, Vusize},
-    source::{parse_localfile, parse_webfile, resize_image_with_max_dim, ImageResult},
+    utils::image::{ImageParser, ImageResult},
 };
 
 #[derive(Debug)]
@@ -48,20 +49,56 @@ impl SourceKind {
 }
 
 #[derive(Debug)]
-pub enum MediaType {
-    Image,
-    Gif,
+pub enum SizeConstraint {
+    MaxDim(usize),
+    MaxPixels(usize),
 }
 
-impl MediaType {
-    pub fn from_value(value: &Value) -> Self {
-        let kind = value.get("media-type").unwrap().as_str().unwrap();
-
-        match kind {
-            "image" => MediaType::Image,
-            "gif" => MediaType::Gif,
-            _ => todo!(),
+impl SizeConstraint {
+    pub fn from_value(value: &Value) -> Option<Self> {
+        if let Some(value) = value.get("max-dim") {
+            Some(Self::MaxDim(value.as_u64().unwrap() as usize))
+        } else if let Some(value) = value.get("max-pixels") {
+            Some(Self::MaxPixels(value.as_u64().unwrap() as usize))
+        } else {
+            None
         }
+    }
+
+    pub fn as_string(&self) -> String {
+        match self {
+            Self::MaxDim(n) => format!("max-dim: {n}"),
+            Self::MaxPixels(n) => format!("max-pixels: {n}"),
+        }
+    }
+
+    pub fn constrain(&self, image: DynamicImage) -> DynamicImage {
+        let (x, y) = image.dimensions();
+
+        match self {
+            Self::MaxDim(max_dim) => {
+                if *max_dim < x.max(y) as usize {
+                    Self::resize_image(image, *max_dim as f32 / x.max(y) as f32)
+                } else {
+                    image
+                }
+            }
+            Self::MaxPixels(max_pixels) => {
+                let pixels = x * y;
+
+                if pixels > *max_pixels as u32 {
+                    Self::resize_image(image, (*max_pixels as f32 / pixels as f32).sqrt())
+                } else {
+                    image
+                }
+            }
+        }
+    }
+
+    pub fn resize_image(image: DynamicImage, factor: f32) -> DynamicImage {
+        let (x, y) = image.dimensions();
+        let mul = |int: u32, float: f32| (int as f32 * float) as u32;
+        image.resize(mul(x, factor), mul(y, factor), imageops::Nearest)
     }
 }
 
@@ -69,10 +106,8 @@ impl MediaType {
 pub struct Source {
     pub kind: SourceKind,
     // media_type: MediaType,
-    pub max_dim: Option<usize>,
+    pub constraint: Option<SizeConstraint>,
 }
-
-type UtilResult<T> = Result<T, Box<dyn Error>>;
 
 impl Source {
     pub fn from_value(value: &Value) -> Self {
@@ -81,25 +116,25 @@ impl Source {
         Self {
             kind: SourceKind::from_value(source),
             // media_type: MediaType::from_value(source),
-            max_dim: source.get("max-dim").map(|m| m.as_u64().unwrap() as usize),
+            constraint: SizeConstraint::from_value(source),
         }
     }
 
-    pub fn max_dim_str(&self) -> String {
-        match self.max_dim {
-            Some(max_dim) => format!("{max_dim}"),
+    pub fn constraint_str(&self) -> String {
+        match &self.constraint {
+            Some(max_dim) => max_dim.as_string(),
             None => "None".to_string(),
         }
     }
 
-    pub fn perform(&self) -> UtilResult<ImageResult> {
+    pub fn perform(&self) -> ImageResult {
         let result = match &self.kind {
             SourceKind::File(target) => {
-                let file = parse_localfile(target)?;
+                let file = ImageParser::parse_localfile(target);
 
-                if self.max_dim.is_some() {
+                if self.constraint.is_some() {
                     if let ImageResult::Image(image) = file {
-                        resize_image_with_max_dim(&image, self.max_dim.unwrap()).into()
+                        self.constraint.as_ref().unwrap().constrain(image).into()
                     } else {
                         file
                     }
@@ -108,11 +143,11 @@ impl Source {
                 }
             }
             SourceKind::Url(target) => {
-                let file = parse_webfile(&target)?;
+                let file = ImageParser::parse_webfile(&target);
 
-                if self.max_dim.is_some() {
+                if self.constraint.is_some() {
                     if let ImageResult::Image(image) = file {
-                        resize_image_with_max_dim(&image, self.max_dim.unwrap()).into()
+                        self.constraint.as_ref().unwrap().constrain(image).into()
                     } else {
                         file
                     }
@@ -122,7 +157,7 @@ impl Source {
             }
         };
 
-        Ok(result)
+        result
     }
 }
 
