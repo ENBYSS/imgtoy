@@ -3,3 +3,6 @@ output/
 option.yaml
 option-v2.yaml
 clear-quickmake.sh
+
+perf.data*
+flamegraph.svg

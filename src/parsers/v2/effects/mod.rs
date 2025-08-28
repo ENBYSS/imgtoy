@@ -1,4 +1,5 @@
 use image_effects::{
+    dispatch::{self, EffectEnum},
     dither::{
         self,
         error::{self, WithPalette},
@@ -114,8 +115,10 @@ impl EffectKind {
         }
     }
 
-    pub fn generate<'a, 'b, T>(&self) -> Box<dyn Effect<T> + Send + Sync>
+    pub fn generate<'a, 'b, T>(&self) -> EffectEnum<T>
     where
+        dispatch::Null<T>: Effect<T>,
+        filters::Invert: Effect<T>,
         filters::HueRotate: Effect<T>,
         filters::Contrast: Effect<T>,
         filters::Brighten: Effect<T>,
@@ -127,15 +130,15 @@ impl EffectKind {
         error::ErrorPropagator<'static, 'static, WithPalette>: Effect<T>,
     {
         match self {
-            Self::Brighten(f) => Box::new(f.generate()),
-            Self::Saturate(f) => Box::new(f.generate()),
-            Self::Contrast(f) => Box::new(f.generate()),
-            Self::HueRotate(f) => Box::new(f.generate()),
-            Self::MultiplyHue(f) => Box::new(f.generate()),
-            Self::QuantizeHue(f) => Box::new(f.generate()),
-            Self::GradientMap(f) => Box::new(f.generate()),
-            Self::ErrorPropagator(f) => Box::new(f.generate()),
-            Self::Ordered(f) => Box::new(f.generate_effect()),
+            Self::Brighten(f) => f.generate().into(),
+            Self::Saturate(f) => f.generate().into(),
+            Self::Contrast(f) => f.generate().into(),
+            Self::HueRotate(f) => f.generate().into(),
+            Self::MultiplyHue(f) => f.generate().into(),
+            Self::QuantizeHue(f) => f.generate().into(),
+            Self::GradientMap(f) => f.generate().into(),
+            Self::ErrorPropagator(f) => f.generate().into(),
+            Self::Ordered(f) => f.generate_effect().into(),
         }
     }
 }
@@ -159,8 +162,10 @@ impl Effects {
         }
     }
 
-    pub fn generate<T>(&self) -> Vec<Box<dyn Effect<T> + Send + Sync>>
+    pub fn generate<T>(&self) -> Vec<EffectEnum<T>>
     where
+        dispatch::Null<T>: Effect<T>,
+        filters::Invert: Effect<T>,
         filters::HueRotate: Effect<T>,
         filters::Contrast: Effect<T>,
         filters::Brighten: Effect<T>,
@@ -172,5 +177,40 @@ impl Effects {
         error::ErrorPropagator<'static, 'static, WithPalette>: Effect<T>,
     {
         self.kinds.iter().map(|kind| kind.generate()).collect()
+    }
+}
+
+trait EffectDetails {
+    fn details(&self) -> String;
+}
+
+impl<T> EffectDetails for EffectEnum<T>
+where
+    dispatch::Null<T>: Effect<T>,
+    filters::Invert: Effect<T>,
+    filters::HueRotate: Effect<T>,
+    filters::Contrast: Effect<T>,
+    filters::Brighten: Effect<T>,
+    filters::Saturate: Effect<T>,
+    filters::GradientMap: Effect<T>,
+    filters::QuantizeHue: Effect<T>,
+    filters::MultiplyHue: Effect<T>,
+    dither::ordered::Ordered: Effect<T>,
+    error::ErrorPropagator<'static, 'static, WithPalette>: Effect<T>,
+{
+    fn details(&self) -> String {
+        match self {
+            Self::HueRotate(fx) => format!("hue-rotate ({}deg)", fx.0),
+            Self::Contrast(fx) => format!("contrast ({})", fx.0),
+            Self::Brighten(fx) => format!("brighten ({})", fx.0),
+            Self::Saturate(fx) => format!("saturate ({})", fx.0),
+            Self::GradientMap(fx) => format!("gradient-map (!!!)"),
+            Self::QuantizeHue(fx) => format!("quantize-hue (!!!)"),
+            Self::MultiplyHue(fx) => format!("multiply-hue (!!!)"),
+            Self::Ordered(fx) => format!("ordered (!!!)"),
+            Self::ErrorPropagator(fx) => format!("error-propagator (!!!)"),
+            Self::Null(fx) => format!("null (???)"),
+            Self::Invert(fx) => format!("invert"),
+        }
     }
 }

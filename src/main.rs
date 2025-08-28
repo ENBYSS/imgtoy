@@ -1,4 +1,4 @@
-use std::{error::Error, fs::File, path::Path};
+use std::{error::Error, fs::File, path::Path, time::Duration};
 
 use image::{codecs::gif::GifEncoder, DynamicImage, Frame};
 use indicatif::{ProgressBar, ProgressStyle};
@@ -97,20 +97,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let bar = ProgressBar::new(iterations);
     bar.set_style(
         ProgressStyle::with_template(
-            "[{eta:>8} remaining...] {pos:>4}/{len:4} {bar:40.cyan/blue} {msg}",
+            "[{eta:>8} remaining...] {pos:>4}/{len:4} [{per_sec}] {bar:40.cyan/blue} ({percent}%) {msg}",
         )
         .unwrap(),
     );
 
-    // std::thread::spawn(move || {
-    //     for i in 0.. {
-    //         if i % 100 == 0 {
-    //             bar.tick()
-    //         }
-    //     }
-    // });
-
     // log.header("EXECUTION")?;
+
+    bar.enable_steady_tick(Duration::from_millis(100));
 
     (0..iterations).into_par_iter().for_each(|i| {
         bar.inc(1);
@@ -122,7 +116,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let effects = maincfg.effects.generate::<DynamicImage>();
                 let mut image = img.clone();
                 for effect in effects.iter() {
-                    bar.tick();
                     image = effect.affect(image);
                 }
 
@@ -138,7 +131,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .map(|(i, mut frame)| {
                         bar.set_message(format!("frame {i} of {frames_amnt}"));
                         for effect in &effects {
-                            bar.tick();
                             frame = effect.affect(frame);
                         }
                         frame
