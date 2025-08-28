@@ -3,16 +3,14 @@ use std::{error::Error, fs::File, path::Path, time::Duration};
 use image::{codecs::gif::GifEncoder, DynamicImage, Frame};
 use indicatif::{ProgressBar, ProgressStyle};
 use owo_colors::OwoColorize;
-use rand::{rngs::StdRng, SeedableRng};
-use rayon::iter::{
-    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
-};
+use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 
 use crate::{parsers::v2::structure::MainConfiguration, utils::image::ImageResult};
 
-mod effects;
 mod ffmpeg;
-mod logging;
+// logging is unused, since it works w/ v1.
+// a v2 version should be made, making use of enum dispatch.
+// mod logging;
 mod parsers;
 mod utils;
 
@@ -45,7 +43,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("{label_processing} | Parsing YAML as configuration");
 
-    let mut rng = StdRng::from_os_rng();
+    // let rng = StdRng::from_os_rng();
 
     let maincfg = MainConfiguration::from_value(&yaml);
     // panic!("EMERGENCY EXIT - Testing out Main Configuration system. Here is the detected config. Use the V2 config due to changes.\n {maincfg:#?}");
@@ -159,7 +157,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     .unwrap();
                 encoder.encode_frames(frames.into_iter()).unwrap();
             }
-            ImageResult::Anim(anim) => {
+            ImageResult::Anim(_anim) => {
                 todo!("Not currently supported")
             }
         }

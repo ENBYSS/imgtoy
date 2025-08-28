@@ -113,7 +113,7 @@ impl HueStrategyKind {
         neighbourhood
     }
 
-    pub fn execute(&self) -> Vec<f32> {
+    pub fn _execute(&self) -> Vec<f32> {
         self.execute_with_seed_hue(rand::rng().random_range(0.0..360.0))
     }
 

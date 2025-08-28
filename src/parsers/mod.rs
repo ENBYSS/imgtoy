@@ -1,13 +1,8 @@
-pub mod effects;
-pub mod palette;
-pub mod system;
-pub mod util;
+// these are from v1 --- they are kept mostly to salvage logic into v2.
+// pub mod effects;
+// pub mod palette;
+// pub mod system;
+// pub mod util;
 
-/// A plan for an upgraded parsing system.
-///
-/// The main benefit here is that the entire configuration is parsed into
-/// a single struct that then gets executed.
-///
-/// This splits the random generation away from the parsing - since currently
-/// we have to reparse the file EVERY TIME we iterate.
+// this will eventually be split open - once v1 is removed
 pub mod v2;

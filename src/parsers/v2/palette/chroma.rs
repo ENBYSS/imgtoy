@@ -25,9 +25,11 @@ impl ChromaStrategy {
 
     pub fn attach_chroma(&self, colours: &Vec<(f32, f32)>) -> Vec<(f32, f32, f32)> {
         let mut rng = rand::rng();
-        colours
-            .iter()
-            .map(|(hue, lum)| (*hue, rng.random_range(0.0..128.0), *lum))
-            .collect()
+        match self.kind {
+            ChromaStrategyKind::Random => colours
+                .iter()
+                .map(|(hue, lum)| (*hue, rng.random_range(0.0..128.0), *lum))
+                .collect(),
+        }
     }
 }

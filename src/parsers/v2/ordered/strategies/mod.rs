@@ -1,4 +1,4 @@
-use image_effects::dither::ordered::{algorithms::properties, Ordered, OrderedStrategy};
+use image_effects::dither::ordered::OrderedStrategy;
 use serde_yaml::Value;
 
 use crate::parsers::v2::{
@@ -139,6 +139,10 @@ impl Effect {
                 direction: Diagonal::from_value(effect),
                 increase: Increase::from_value(effect).unwrap_or_default(),
             },
+            "diamond-grid" => Self::DiamondGrid,
+            "speckle-squares" => Self::SpeckleSquares,
+            "scales" => Self::Scales,
+            "trail-scales" => Self::TrailScales,
             "diagonal-tiles" => Self::DiagonalTiles {
                 matrix_size: parse_matrix_size(effect),
             },

@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use image_effects::dither::ordered::algorithms::properties;
 use rand::Rng;
 use serde_yaml::Value;

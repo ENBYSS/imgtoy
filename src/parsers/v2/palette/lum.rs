@@ -38,10 +38,10 @@ pub enum LumStrategyKind {
 impl LumStrategyKind {
     pub fn generate(&self, hues: &Vec<f32>, min_lum: f64, max_lum: f64) -> Vec<(f32, f32)> {
         match self {
-            Self::Exact { exact } => unimplemented!(),
-            Self::StackedExact { stacks, exact } => unimplemented!(),
-            Self::Random { count, stack } => unimplemented!(),
-            Self::StackDistributed { stacks } => unimplemented!(),
+            Self::Exact { exact } => todo!("implement exact strategy"),
+            Self::StackedExact { stacks, exact } => todo!("implement stacked exact strategy"),
+            Self::Random { count, stack } => todo!("implement random strategy"),
+            Self::StackDistributed { stacks } => todo!("implement stack distributed strategy"),
             Self::StackDistributedArea { stacks, overlap } => {
                 let mut cols = Vec::new();
                 for hue in hues.iter() {

@@ -8,10 +8,6 @@ pub fn parse_matrix_size(value: &Value) -> ValueProperty<usize> {
     parse_property_as_usize(value, "matrix-size").unwrap()
 }
 
-pub fn parse_factor(value: &Value) -> ValueProperty<f64> {
-    parse_property_as_f64(value, "factor").unwrap()
-}
-
 pub fn parse_dimensions_as_f64(
     value: &Value,
 ) -> (Option<ValueProperty<f64>>, Option<ValueProperty<f64>>) {

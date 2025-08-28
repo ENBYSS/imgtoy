@@ -1,13 +1,8 @@
-use std::marker::PhantomData;
-
-use image_effects::dither::{
-    self,
-    ordered::tools::{self, properties},
-};
+use image_effects::dither::ordered::tools::properties;
 use rand::seq::IndexedRandom;
 use serde_yaml::Value;
 
-use crate::parsers::v2::structure::value::{parse_property_as_f64, Chance, ValueProperty, Vf64};
+use crate::parsers::v2::structure::value::{parse_property_as_f64, Chance, ValueProperty};
 
 #[derive(Debug)]
 pub enum RotationDirection {

@@ -1,11 +1,9 @@
-use std::collections::HashMap;
-
 use image_effects::dither::ordered::algorithms::properties;
 use rand::Rng;
 use serde_yaml::Value;
 
 use crate::parsers::v2::structure::value::{
-    parse_property_as_f64, parse_property_as_usize, ValueProperty, Vf64, Vusize,
+    parse_property_as_f64, parse_property_as_usize, Chance, ValueProperty, Vusize,
 };
 
 #[derive(PartialEq, Eq, Hash, Debug)]
@@ -32,14 +30,14 @@ pub enum IncreaseKind {
 #[derive(Debug)]
 pub struct Increase {
     kind: IncreaseKind,
-    chance: Vf64,
+    chance: Chance,
 }
 
 impl Default for Increase {
     fn default() -> Self {
         Increase {
             kind: IncreaseKind::Exact(IncreaseValueKind::Linear(ValueProperty::Fixed(1))),
-            chance: ValueProperty::Fixed(0.0),
+            chance: ValueProperty::Fixed(0.0).into(),
         }
     }
 }
@@ -72,7 +70,7 @@ impl Increase {
                 ratios.push((exponential, IncreaseValueKind::Exponential(factor)));
             }
 
-            Increase { kind: IncreaseKind::Ratios(ratios), chance }
+            Increase { kind: IncreaseKind::Ratios(ratios), chance: chance.into() }
         },
         Value::String(strategy_type) => {
             let kind = match strategy_type.as_str() {
@@ -81,7 +79,7 @@ impl Increase {
                 _ => panic!("[ordered.increase-strategy.type] must be 'linear' or 'exponential"),
             };
 
-            Increase { kind: IncreaseKind::Exact(kind), chance }
+            Increase { kind: IncreaseKind::Exact(kind), chance: chance.into() }
         },
         _ => panic!("[ordered.orientation] must be a mapping of ratios, or one of 'down-right' / 'up-right'")
     };
@@ -90,6 +88,10 @@ impl Increase {
     }
 
     pub fn generate(&self) -> properties::Increase {
+        if !self.chance.roll() {
+            todo!("exit")
+        }
+
         match &self.kind {
             IncreaseKind::Exact(increase) => increase.to_property(),
             IncreaseKind::Ratios(ratios) => {
