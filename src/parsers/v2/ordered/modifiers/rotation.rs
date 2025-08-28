@@ -58,7 +58,7 @@ impl Rotation {
                 "left" => RotationDirection::LEFT,
                 "half" => RotationDirection::HALF,
                 "none" => RotationDirection::NONE,
-                _ => todo!(),
+                _ => unimplemented!("rotation direction {prop} is not supported."),
             })
             .collect::<Vec<_>>();
 

@@ -111,7 +111,7 @@ impl EffectKind {
             "gradient-map" => GradientMap::from_value(value).into(),
             "error-propagator" => ErrorPropagator::from_value(value).into(),
             "ordered" => Ordered::from_value(value).into(),
-            _ => todo!(),
+            _ => unimplemented!("effect {effect} is not supported."),
         }
     }
 

@@ -21,9 +21,9 @@ impl SourceKind {
         let url = value.get("url");
 
         if file.and(url).is_some() {
-            todo!()
+            unimplemented!("only one of file/url accepted")
         } else if file.or(url).is_none() {
-            todo!()
+            unimplemented!("at least one of file/url required")
         }
 
         if let Some(file) = file {
@@ -36,7 +36,7 @@ impl SourceKind {
             let url = hre.replace_all(&url, "");
             SourceKind::Url(url.to_string())
         } else {
-            todo!()
+            unimplemented!("we shouldn't have even reached this point...")
         }
     }
 

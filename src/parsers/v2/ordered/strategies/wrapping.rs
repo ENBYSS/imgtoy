@@ -54,7 +54,7 @@ impl Wrapping {
                 "vertical" => WrappingKind::Vertical,
                 "all" => WrappingKind::All,
                 "none" => WrappingKind::None,
-                _ => todo!(),
+                _ => unimplemented!("wrapping {wrapping} is not supported"),
             })
             .collect::<Vec<_>>();
 

@@ -16,7 +16,7 @@ impl From<&str> for HueDistribution {
         match value {
             "linear" => Self::Linear,
             "random" => Self::Random,
-            _ => todo!(),
+            _ => unimplemented!("hue distribution {value} is not supported."),
         }
     }
 }
@@ -174,7 +174,7 @@ impl HueStrategies {
             "contrast" => HueStrategyKind::parse_contrast(value),
             "penpal" => HueStrategyKind::parse_penpal(value),
             "cycle" => HueStrategyKind::parse_cycle(value),
-            _ => todo!(),
+            _ => unimplemented!("hue-strategy {kind} is not supported"),
         };
 
         kind

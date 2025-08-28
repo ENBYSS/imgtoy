@@ -159,7 +159,7 @@ impl LumStrategy {
             "distributed/area" => LumStrategyKind::parse_stacked_distributed_area(value),
             "distributed/nudge" => LumStrategyKind::parse_stacked_distributed_nudge(value),
             "looping-preference" => LumStrategyKind::parse_looping_preference(value),
-            _ => todo!(),
+            _ => unimplemented!("lum-strategy '{kind}' is not supported"),
         };
 
         Self {

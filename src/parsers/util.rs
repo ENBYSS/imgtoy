@@ -1,3 +1,5 @@
+#![deprecated = "old version"]
+
 use rand::Rng;
 use serde_yaml::Value;
 
@@ -70,7 +72,7 @@ pub mod logless {
                 .as_u64()
                 .expect("[brighten] options should be valid floats.")
         } else {
-            todo!()
+            unimplemented!()
         }
     }
 

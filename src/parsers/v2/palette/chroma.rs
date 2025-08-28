@@ -17,7 +17,7 @@ impl ChromaStrategy {
 
         let kind = match kind {
             "random" => ChromaStrategyKind::Random,
-            _ => todo!(),
+            _ => unimplemented!("strategy {kind} is not supported."),
         };
 
         ChromaStrategy { kind }

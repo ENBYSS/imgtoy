@@ -50,7 +50,7 @@ impl ValueProperty<usize> {
                     .collect(),
             )
         } else {
-            todo!()
+            unimplemented!("other yaml kinds not supported")
         }
     }
 
@@ -89,7 +89,7 @@ impl ValueProperty<isize> {
                     .collect(),
             )
         } else {
-            todo!()
+            unimplemented!("other yaml kinds not supported")
         }
     }
 
@@ -128,7 +128,7 @@ impl ValueProperty<f64> {
                     .collect(),
             )
         } else {
-            todo!()
+            unimplemented!("other yaml kinds not supported")
         }
     }
 

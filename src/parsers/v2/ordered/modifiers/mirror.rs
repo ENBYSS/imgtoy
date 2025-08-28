@@ -68,7 +68,9 @@ impl Mirror {
                             "upright" => MirrorDirection::Upright,
                             "horizontal" => MirrorDirection::Horizontal,
                             "vertical" => MirrorDirection::Vertical,
-                            _ => todo!(),
+                            _ => {
+                                unimplemented!("mirror direction {direction_name} is not supported")
+                            }
                         }
                     })
                     .collect::<Vec<_>>()
