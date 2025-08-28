@@ -2,6 +2,7 @@ use std::{error::Error, fs::File, path::Path, time::Duration};
 
 use image::{codecs::gif::GifEncoder, DynamicImage, Frame};
 use indicatif::{ProgressBar, ProgressStyle};
+use owo_colors::OwoColorize;
 use rand::{rngs::StdRng, SeedableRng};
 use rayon::iter::{
     IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
@@ -22,21 +23,29 @@ mod source;
 fn main() -> Result<(), Box<dyn Error>> {
     let mut args = std::env::args();
 
+    let label_processing = "[...]".blue();
+    let label_info = "[ @ ]".purple();
+    let label_alert = "[ ! ]".yellow();
+
+    let label_processing = label_processing.bold();
+    let label_info = label_info.bold();
+    let label_alert = label_alert.bold();
+
     if args.len() != 2 {
         panic!("Expected a single arg which represents the filepath of the configuration file.");
     }
 
     let config_file = args.nth(1).unwrap();
 
-    println!("[...] - Reading configuration file: {config_file}");
+    println!("{label_processing} | Reading configuration file: {config_file}");
 
     let config = std::fs::read_to_string(config_file)?;
 
-    println!("[...] - Parsing file as YAML...");
+    println!("{label_processing} | Parsing file as YAML...");
 
     let yaml: serde_yaml::Value = serde_yaml::from_str(&config)?;
 
-    println!("[...] - Parsing YAML as configuration");
+    println!("{label_processing} | Parsing YAML as configuration");
 
     let mut rng = StdRng::from_os_rng();
 
@@ -84,20 +93,25 @@ fn main() -> Result<(), Box<dyn Error>> {
     // log.end_category()?; // output
 
     println!(
-        "[...] - Processing image: {}",
+        "{label_processing} | Processing image: {}",
         maincfg.source.kind.get_path()
     );
-    println!("[...] - ...with max size: {}", maincfg.source.max_dim_str());
-    println!("[ ! ] - Running {iterations} iterations...");
+    println!("      | ...with max size: {}", maincfg.source.max_dim_str());
 
     let media = maincfg.source.perform()?;
+    let dims = media.get_dimensions();
+
+    println!("{label_info} | Image dimensions are: {dims:?}]");
+    println!("      | Total pixels: {}", dims.0 * dims.1);
+
+    println!("{label_alert} | Running {iterations} iterations...");
 
     // TODO: Add initial setup.
 
     let bar = ProgressBar::new(iterations);
     bar.set_style(
         ProgressStyle::with_template(
-            "[{eta:>8} remaining...] {pos:>4}/{len:4} [{per_sec}] {bar:40.cyan/blue} ({percent}%) {msg}",
+            "[{eta:>8.bold} remaining...] {pos:>4.dim}/{len:4} [{per_sec}] {bar:40.cyan/purple} ({percent:.bold}%) {msg}",
         )
         .unwrap(),
     );

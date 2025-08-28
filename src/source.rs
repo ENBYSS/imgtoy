@@ -32,6 +32,16 @@ impl ImageResult {
             Err(Empty)
         }
     }
+
+    pub fn get_dimensions(&self) -> (u32, u32) {
+        match self {
+            Self::Image(img) => img.dimensions(),
+            Self::Gif(gif) => {
+                let frame = gif.get(0).unwrap();
+                (frame.top(), frame.left())
+            }
+        }
+    }
 }
 
 impl From<DynamicImage> for ImageResult {

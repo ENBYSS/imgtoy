@@ -1,5 +1,6 @@
 use std::error::Error;
 
+use regex::Regex;
 use serde_yaml::Value;
 
 use crate::{
@@ -27,7 +28,12 @@ impl SourceKind {
         if let Some(file) = file {
             SourceKind::File(file.as_str().unwrap().to_string())
         } else if let Some(url) = url {
-            SourceKind::Url(url.as_str().unwrap().to_string())
+            let url = url.as_str().unwrap();
+            let wre = Regex::new(r"&width=[0-9]+").unwrap();
+            let hre = Regex::new(r"&height=[0-9]+").unwrap();
+            let url = wre.replace_all(&url, "");
+            let url = hre.replace_all(&url, "");
+            SourceKind::Url(url.to_string())
         } else {
             todo!()
         }
@@ -102,7 +108,7 @@ impl Source {
                 }
             }
             SourceKind::Url(target) => {
-                let file = parse_webfile(target)?;
+                let file = parse_webfile(&target)?;
 
                 if self.max_dim.is_some() {
                     if let ImageResult::Image(image) = file {
