@@ -91,7 +91,7 @@ impl Palette {
 
         if self.config.misc_flag.extremes {
             colours.push((0.0, 0.0, 0.0));
-            colours.push((100.0, 9.0, 0.0));
+            colours.push((100.0, 0.0, 0.0));
         }
 
         colours

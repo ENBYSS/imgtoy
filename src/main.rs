@@ -56,22 +56,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     //     }
     // };
 
-    let output = yaml
-        .get("output")
-        .expect("[output] is required.")
-        .as_mapping()
-        .expect("[output] must be a mapping / object.");
-
-    let out_path = output
-        .get("path")
-        .expect("[output.path] must be specified.")
-        .as_str()
-        .expect("[output.path] must be a string.");
-
-    println!("[...] - Output path defined as: {out_path}");
-
-    if !Path::new(out_path).is_dir() {
-        std::fs::create_dir_all(out_path)?;
+    let out_path = maincfg.output.path;
+    if !Path::new(&out_path.clone()).is_dir() {
+        std::fs::create_dir_all(&out_path)?;
     }
 
     // let mut log = SystemLog::init(out_path.into())?;
@@ -96,6 +83,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     // log.state_property("n", iterations.to_string())?;
     // log.end_category()?; // output
 
+    println!(
+        "[...] - Processing image: {}",
+        maincfg.source.kind.get_path()
+    );
+    println!("[...] - ...with max size: {}", maincfg.source.max_dim_str());
     println!("[ ! ] - Running {iterations} iterations...");
 
     let media = maincfg.source.perform()?;

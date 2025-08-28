@@ -59,7 +59,7 @@ impl LumStrategyKind {
                         area_end = (area_end + overlap).min(max_lum);
 
                         let l = rand::rng().random_range(area_start..area_end) as f32;
-                        cols.push((*hue, l));
+                        cols.push((l, *hue));
                     }
                 }
                 cols
