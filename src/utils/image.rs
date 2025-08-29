@@ -1,9 +1,13 @@
 use std::str::FromStr;
 
 use image::{codecs::gif::GifDecoder, AnimationDecoder, DynamicImage, Frame, GenericImageView};
+use indicatif::ProgressDrawTarget;
 use mime::Mime;
 use reqwest::header::{HeaderMap, CONTENT_TYPE};
 
+use crate::parsers::v2::structure::meta::{Source, SourceKind};
+
+#[derive(Clone, Copy)]
 pub enum ImageKind {
     Image,
     Gif,
@@ -108,10 +112,33 @@ impl From<Vec<Frame>> for ImageResult {
 pub struct ImageParser {}
 
 impl ImageParser {
+    pub fn parse_kind(source: &SourceKind) -> ImageKind {
+        match source {
+            SourceKind::File(path) => Self::parse_localkind(path),
+            SourceKind::Url(path) => Self::parse_webkind(path),
+        }
+    }
+
+    pub fn parse_file(source: &SourceKind) -> ImageResult {
+        match source {
+            SourceKind::File(path) => Self::parse_localfile(path),
+            SourceKind::Url(path) => Self::parse_webfile(path),
+        }
+    }
+
+    pub fn parse_localkind(path: &str) -> ImageKind {
+        ImageKind::from_path(path)
+    }
+
     pub fn parse_localfile(path: &str) -> ImageResult {
         let bytes = std::fs::read(path).unwrap();
         let res = Self::parse_bytes(&bytes, ImageKind::from_path(path));
         res
+    }
+
+    pub fn parse_webkind(url: &str) -> ImageKind {
+        let response = reqwest::blocking::get(url).unwrap();
+        ImageKind::from_headers(response.headers())
     }
 
     pub fn parse_webfile(url: &str) -> ImageResult {

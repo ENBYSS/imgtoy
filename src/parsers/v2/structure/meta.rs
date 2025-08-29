@@ -6,7 +6,7 @@ use serde_yaml::Value;
 
 use crate::{
     parsers::v2::structure::value::{parse_property_as_usize, Vusize},
-    utils::image::{ImageParser, ImageResult},
+    utils::image::{ImageKind, ImageParser, ImageResult},
 };
 
 #[derive(Debug)]
@@ -44,6 +44,13 @@ impl SourceKind {
         match self {
             Self::File(path) => path.to_string(),
             Self::Url(path) => path.to_string(),
+        }
+    }
+
+    pub fn get_image_kind(&self) -> ImageKind {
+        match self {
+            SourceKind::File(path) => ImageParser::parse_localkind(path),
+            SourceKind::Url(path) => ImageParser::parse_webkind(path),
         }
     }
 }

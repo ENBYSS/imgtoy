@@ -11,11 +11,13 @@ mod ffmpeg;
 // logging is unused, since it works w/ v1.
 // a v2 version should be made, making use of enum dispatch.
 // mod logging;
+mod clap;
 mod parsers;
 mod utils;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // FfmpegUtil::demo();
+    // crate::clap::clap_demo();
+    // crate::ffmpeg::FfmpegUtil::demo();
 
     let mut args = std::env::args();
 
