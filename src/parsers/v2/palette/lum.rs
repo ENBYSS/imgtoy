@@ -1,3 +1,4 @@
+use owo_colors::OwoColorize;
 use rand::Rng;
 use serde_yaml::Value;
 
@@ -8,15 +9,13 @@ use crate::parsers::v2::structure::value::{
 #[derive(Debug)]
 pub enum LumStrategyKind {
     StackedExact {
-        stacks: Vusize,
         exact: Vec<Vf64>,
     },
     Exact {
         exact: Vf64,
     },
     Random {
-        count: Vusize,
-        stack: bool,
+        stacks: Option<Vusize>,
     },
     StackDistributed {
         stacks: Vusize,
@@ -28,25 +27,58 @@ pub enum LumStrategyKind {
     StackDistributedNudge {
         stacks: Vusize,
         nudge_size: Vf64,
-        per_lum: bool,
     },
     LoopingPreference {
+        focus_hue: Vf64,
         segments: Vusize,
+        spread: (Vusize, Vf64),
+        clamp: (Vf64, Vf64),
     },
 }
 
 impl LumStrategyKind {
     pub fn generate(&self, hues: &Vec<f32>, min_lum: f64, max_lum: f64) -> Vec<(f32, f32)> {
         match self {
-            Self::Exact { exact } => todo!("implement exact strategy"),
-            Self::StackedExact { stacks, exact } => todo!("implement stacked exact strategy"),
-            Self::Random { count, stack } => todo!("implement random strategy"),
-            Self::StackDistributed { stacks } => todo!("implement stack distributed strategy"),
-            Self::StackDistributedArea { stacks, overlap } => {
-                let mut cols = Vec::new();
+            Self::Exact { exact } => hues
+                .iter()
+                .map(|hue| (exact.generate() as f32, *hue))
+                .collect(),
+            Self::StackedExact { exact } => hues
+                .iter()
+                .flat_map(|hue| exact.iter().map(|exact| (exact.generate() as f32, *hue)))
+                .collect(),
+            Self::Random { stacks } => {
+                let mut rng = rand::rng();
+                let stacks = stacks.as_ref().map(|v| v.generate()).unwrap_or(1);
+
+                let mut colours = Vec::with_capacity(stacks * hues.len());
+                for hue in hues {
+                    for _ in 0..stacks {
+                        colours.push((rng.random_range(0.0..100.0) as f32, *hue));
+                    }
+                }
+                colours
+            }
+            Self::StackDistributed { stacks } => {
+                let stacks = stacks.generate();
+                let mut cols = Vec::with_capacity(stacks * hues.len());
+
                 for hue in hues.iter() {
-                    let stacks = stacks.generate();
-                    for mut i in 0..stacks {
+                    for i in 0..stacks {
+                        let span_size = max_lum - min_lum;
+                        let l = min_lum + (i as f64 / (stacks as f64 - 1.0)) * span_size;
+                        cols.push((l as f32, *hue));
+                    }
+                }
+
+                cols
+            }
+            Self::StackDistributedArea { stacks, overlap } => {
+                let stacks = stacks.generate();
+                let mut cols = Vec::with_capacity(stacks * hues.len());
+
+                for hue in hues.iter() {
+                    for i in 0..stacks {
                         let span_size = max_lum - min_lum;
                         let step_size = span_size / stacks as f64;
 
@@ -64,12 +96,84 @@ impl LumStrategyKind {
                 }
                 cols
             }
-            Self::StackDistributedNudge {
-                nudge_size,
-                per_lum,
-                stacks,
-            } => unimplemented!(),
-            Self::LoopingPreference { segments } => unimplemented!(),
+            Self::StackDistributedNudge { nudge_size, stacks } => {
+                let mut rng = rand::rng();
+                let stacks = stacks.generate();
+                let mut cols = Vec::with_capacity(stacks * hues.len());
+                let nudge_size = nudge_size.generate();
+
+                for hue in hues.iter() {
+                    for i in 0..stacks {
+                        let span_size = max_lum - min_lum;
+                        let mut l = min_lum + (i as f64 / (stacks as f64 - 1.0)) * span_size;
+
+                        l = (l + rng.random_range((-nudge_size)..nudge_size)).clamp(0.0, 100.0);
+
+                        cols.push((l as f32, *hue));
+                    }
+                }
+
+                cols
+            }
+            Self::LoopingPreference {
+                focus_hue,
+                segments,
+                spread: (s_amnt, s_size),
+                clamp: (c_min, c_max),
+            } => {
+                // **|(HUE - TARGET / (360 / N)) % 2 - 1.0|**
+                let focus_hue = focus_hue.generate() % 360.0;
+                let segments = segments.generate();
+                let s_amnt = s_amnt.generate();
+                let s_size = s_size.generate();
+                let c_min = c_min.generate();
+                let c_max = c_max.generate();
+                let mut rng = rand::rng();
+
+                let mut cols = Vec::with_capacity(hues.len() * (s_amnt + 1));
+
+                for hue in hues.iter() {
+                    let diff = (focus_hue - *hue as f64).abs();
+                    let segment_size = 360.0 / segments as f64;
+                    let segment_loc = (diff / segment_size) % 2.0;
+                    let final_lum = (segment_loc - 1.0).abs() as f32;
+                    cols.push((final_lum * 100.0, *hue));
+
+                    for _ in 0..s_amnt {
+                        let (mut r_min, mut r_max) = (
+                            (final_lum as f64 - s_size).max(c_min),
+                            (final_lum as f64 + s_size).min(c_max),
+                        );
+
+                        if (final_lum as f64) < r_min {
+                            r_min = final_lum as f64;
+                        }
+                        if (final_lum as f64) > r_max {
+                            r_max = final_lum as f64;
+                        }
+
+                        r_min *= 100.0;
+                        r_max *= 100.0;
+
+                        if r_min < r_max {
+                            cols.push((rng.random_range(r_min..r_max) as f32, *hue))
+                        }
+                        // else {
+                        //     println!("final lum: {final_lum}, spread size: {s_size}, clamp: {c_min} ~ {c_max}, range: {r_min} ~ {r_max}");
+                        // }
+                    }
+                }
+
+                // {
+                //     println!("HUES: {hues:?}");
+                //     println!(
+                //         "LUMS: {:?}",
+                //         cols.iter().map(|(l, _)| *l).collect::<Vec<f32>>()
+                //     )
+                // }
+
+                cols
+            }
         }
     }
 
@@ -88,14 +192,9 @@ impl LumStrategyKind {
             .collect()
     }
 
-    fn parse_count(value: &Value) -> Vusize {
-        parse_property_as_usize(value, "count").unwrap()
-    }
-
     pub fn parse_stacked_exact(value: &Value) -> Self {
         Self::StackedExact {
             exact: Self::parse_lum_list(value),
-            stacks: Self::parse_stacks(value),
         }
     }
 
@@ -107,8 +206,7 @@ impl LumStrategyKind {
 
     pub fn parse_random(value: &Value) -> Self {
         Self::Random {
-            count: Self::parse_count(value),
-            stack: value.get("stack").unwrap().as_bool().unwrap(),
+            stacks: parse_property_as_usize(value, "stacks"),
         }
     }
 
@@ -128,14 +226,22 @@ impl LumStrategyKind {
     pub fn parse_stacked_distributed_nudge(value: &Value) -> Self {
         Self::StackDistributedNudge {
             nudge_size: parse_property_as_f64(value, "nudge-size").unwrap(),
-            per_lum: value.get("per-lum").unwrap().as_bool().unwrap(),
             stacks: Self::parse_stacks(value),
         }
     }
 
     pub fn parse_looping_preference(value: &Value) -> Self {
         Self::LoopingPreference {
+            focus_hue: parse_property_as_f64(value, "focus-hue").unwrap(),
             segments: parse_property_as_usize(value, "segments").unwrap(),
+            spread: (
+                parse_property_as_usize(value, "spread-amnt").unwrap_or(0.into()),
+                parse_property_as_f64(value, "spread-size").unwrap_or(10.0.into()),
+            ),
+            clamp: (
+                parse_property_as_f64(value, "clamp-min").unwrap_or(0.0.into()),
+                parse_property_as_f64(value, "clamp-max").unwrap_or(100.0.into()),
+            ),
         }
     }
 }

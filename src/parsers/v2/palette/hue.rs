@@ -102,10 +102,10 @@ impl HueStrategyKind {
             match dist {
                 HueDistribution::Linear => {
                     let fraction = (i as f32) / ((n - 1) as f32);
-                    neighbourhood.push(lower_end + (size as f32 * 2.0 * fraction));
+                    neighbourhood.push((lower_end + (size as f32 * 2.0 * fraction)) % 360.0);
                 }
                 HueDistribution::Random => {
-                    neighbourhood.push(rand::rng().random_range(lower_end..upper_end));
+                    neighbourhood.push((rand::rng().random_range(lower_end..upper_end)) % 360.0);
                 }
             }
         }
