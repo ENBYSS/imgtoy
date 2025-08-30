@@ -6,10 +6,10 @@ use owo_colors::OwoColorize;
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 
 use crate::{
-    ffmpeg::Resource, parsers::v2::structure::MainConfiguration, utils::image::ImageResult,
+    parsers::v2::structure::MainConfiguration, utils::resource::image::parser::ImageResult,
+    utils::resource::Resource,
 };
 
-mod ffmpeg;
 // logging is unused, since it works w/ v1.
 // a v2 version should be made, making use of enum dispatch.
 // mod logging;

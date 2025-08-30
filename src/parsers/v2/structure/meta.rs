@@ -6,7 +6,7 @@ use serde_yaml::Value;
 
 use crate::{
     parsers::v2::structure::value::{parse_property_as_usize, Vusize},
-    utils::image::{ImageKind, ImageParser, ImageResult},
+    utils::resource::image::parser::{ImageKind, ImageParser, ImageResult},
 };
 
 #[derive(Debug)]
