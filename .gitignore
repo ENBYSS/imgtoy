@@ -6,3 +6,4 @@ clear-quickmake.sh
 
 perf.data*
 flamegraph.svg
+temp/

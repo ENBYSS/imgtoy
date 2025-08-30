@@ -131,7 +131,11 @@ impl ImageParser {
     }
 
     pub fn parse_localfile(path: &str) -> ImageResult {
-        let bytes = std::fs::read(path).unwrap();
+        let bytes = std::fs::read(path);
+        if let Err(res) = &bytes {
+            println!("ERROR READING: {path}");
+        }
+        let bytes = bytes.unwrap();
         let res = Self::parse_bytes(&bytes, ImageKind::from_path(path));
         res
     }

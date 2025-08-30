@@ -5,7 +5,9 @@ use indicatif::{ProgressBar, ProgressStyle};
 use owo_colors::OwoColorize;
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 
-use crate::{parsers::v2::structure::MainConfiguration, utils::image::ImageResult};
+use crate::{
+    ffmpeg::Resource, parsers::v2::structure::MainConfiguration, utils::image::ImageResult,
+};
 
 mod ffmpeg;
 // logging is unused, since it works w/ v1.
@@ -99,7 +101,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         maincfg.source.constraint_str()
     );
 
-    let media = maincfg.source.perform();
+    // let media = maincfg.source.perform();
+    let mut media = Resource::use_source(&maincfg.source.kind);
+    if let Some(constraint) = maincfg.source.constraint {
+        media = media.constrain(&constraint);
+    }
+
     let dims = media.get_dimensions();
 
     println!("{label_info} | Image dimensions are: {dims:?}]");
@@ -124,45 +131,15 @@ fn main() -> Result<(), Box<dyn Error>> {
     (0..iterations).into_par_iter().for_each(|i| {
         bar.inc(1);
 
-        // log.begin_category(format!("[{i}]"))?;
+        let mut media_for_iteration = media.with_prefix(format!("output-{i:04}"));
 
-        match &media {
-            ImageResult::Image(img) => {
-                let effects = maincfg.effects.generate::<DynamicImage>();
-                let mut image = img.clone();
-                for effect in effects.iter() {
-                    image = effect.affect(image);
-                }
+        let effects = maincfg.effects.generate::<DynamicImage>();
 
-                image.save(format!("{out_path}/{i:<05}.png")).unwrap();
-            }
-            ImageResult::Gif(gif) => {
-                let effects = maincfg.effects.generate::<Frame>();
-                let frames = gif.clone();
-                let frames_amnt = frames.len();
-                let frames = frames
-                    .into_par_iter()
-                    .enumerate()
-                    .map(|(i, mut frame)| {
-                        bar.set_message(format!("frame {i} of {frames_amnt}"));
-                        for effect in &effects {
-                            frame = effect.affect(frame);
-                        }
-                        frame
-                    })
-                    .collect::<Vec<_>>();
+        media_for_iteration = media_for_iteration.apply_effects(effects);
 
-                let file_out = File::create(format!("{out_path}/{i:<05}.gif")).unwrap();
-                let mut encoder = GifEncoder::new(file_out);
-                encoder
-                    .set_repeat(image::codecs::gif::Repeat::Infinite)
-                    .unwrap();
-                encoder.encode_frames(frames.into_iter()).unwrap();
-            }
-            ImageResult::Anim(_anim) => {
-                todo!("Not currently supported")
-            }
-        }
+        media_for_iteration.save(&format!("{out_path}/{i:<05}"));
+
+        media_for_iteration.clear_temp();
 
         // log.end_category()?;
         // log.newline()?;
