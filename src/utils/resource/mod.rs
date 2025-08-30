@@ -64,7 +64,7 @@ impl Resource {
         }
     }
 
-    pub fn constrain(mut self, constraint: &SizeConstraint) -> Self {
+    pub fn constrain(self, constraint: &SizeConstraint) -> Self {
         match self {
             Self::FfmpegProcessor(processor) => {
                 Self::FfmpegProcessor(processor.constrain(constraint))

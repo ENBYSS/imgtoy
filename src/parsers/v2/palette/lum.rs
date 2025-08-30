@@ -1,4 +1,3 @@
-use owo_colors::OwoColorize;
 use rand::Rng;
 use serde_yaml::Value;
 

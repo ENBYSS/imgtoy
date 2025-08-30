@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{arg, command, value_parser, ArgAction, Command, Subcommand};
+use clap::{arg, command, value_parser, ArgAction, Command};
 use owo_colors::OwoColorize;
 
 pub fn clap_demo() {

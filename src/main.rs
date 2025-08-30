@@ -1,12 +1,12 @@
-use std::{error::Error, fs::File, path::Path, time::Duration};
+use std::{error::Error, path::Path, time::Duration};
 
-use image::{codecs::gif::GifEncoder, DynamicImage, Frame};
+use image::DynamicImage;
 use indicatif::{ProgressBar, ProgressStyle};
 use owo_colors::OwoColorize;
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 
 use crate::{
-    parsers::v2::structure::MainConfiguration, utils::resource::image::parser::ImageResult,
+    parsers::v2::structure::MainConfiguration,
     utils::resource::Resource,
 };
 

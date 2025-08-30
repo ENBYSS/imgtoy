@@ -1,13 +1,9 @@
-use std::error::Error;
 
 use image::{imageops, DynamicImage, GenericImageView};
 use regex::Regex;
 use serde_yaml::Value;
 
-use crate::{
-    parsers::v2::structure::value::{parse_property_as_usize, Vusize},
-    utils::resource::image::parser::{ImageKind, ImageParser, ImageResult},
-};
+use crate::utils::resource::image::parser::{ImageKind, ImageParser, ImageResult};
 
 #[derive(Debug)]
 pub enum SourceKind {

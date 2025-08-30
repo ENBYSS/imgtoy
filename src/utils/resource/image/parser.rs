@@ -1,11 +1,10 @@
 use std::str::FromStr;
 
 use image::{codecs::gif::GifDecoder, AnimationDecoder, DynamicImage, Frame, GenericImageView};
-use indicatif::ProgressDrawTarget;
 use mime::Mime;
 use reqwest::header::{HeaderMap, CONTENT_TYPE};
 
-use crate::parsers::v2::structure::meta::{Source, SourceKind};
+use crate::parsers::v2::structure::meta::SourceKind;
 
 #[derive(Clone, Copy)]
 pub enum ImageKind {
